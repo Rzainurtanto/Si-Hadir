@@ -91,9 +91,9 @@ a { color: inherit; }
   border: 1px solid transparent; border-radius: var(--radius-sm);
   font-family: var(--font-serif); font-size: 14px; letter-spacing: 0.04em;
   text-decoration: none; white-space: nowrap;
-  transition: background-color .15s, border-color .15s, transform .1s, opacity .15s;
+  transition: background-color .15s, border-color .15s, box-shadow .2s, transform .2s cubic-bezier(.2,.7,.2,1), opacity .15s;
 }
-.btn:active { transform: translateY(1px); }
+.btn:active { transform: translateY(0) scale(.97); transition-duration: .08s; }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
 .btn .icon { width: 16px; height: 16px; }
 
@@ -501,8 +501,9 @@ tr.row-new.settled td { background: transparent; }
   width: 100%; max-width: 330px;
   padding: 18px 16px 14px;
   background: #fff; border-radius: 6px; box-shadow: var(--shadow-pop);
-  animation: pop .18s ease-out;
+  animation: modalIn .32s cubic-bezier(.34,1.4,.64,1);
 }
+@keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(.95); } }
 .modal.wide { max-width: 420px; }
 .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .modal-head h3 { margin: 0; font-family: var(--font-serif); font-weight: 400; font-size: 14px; letter-spacing: 0.03em; }
@@ -655,6 +656,101 @@ tr.row-new.settled td { background: transparent; }
 .toast.error { background: #8a1c1c; }
 .toast.leave { opacity: 0; transform: translateY(6px); transition: all .25s; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } }
+
+/* ==========================================================================
+   Animasi
+   ========================================================================== */
+
+:root {
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* Isi halaman muncul bertahap (kelas dipasang oleh app.js) */
+.enter { animation: rise .55s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms); }
+
+/* Baris tabel masuk berurutan */
+.row-in { animation: rowIn .38s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 24ms); }
+@keyframes rowIn { from { opacity: 0; transform: translateY(6px); } }
+
+/* Logo titik: tiap huruf menyala seperti papan LED */
+.logo-dot .ch { display: inline-block; animation: ledOn .6s linear both; animation-delay: calc(var(--i, 0) * 75ms + .15s); }
+@keyframes ledOn {
+  0%   { opacity: 0; }
+  20%  { opacity: .85; }
+  32%  { opacity: .15; }
+  48%  { opacity: 1; }
+  60%  { opacity: .45; }
+  100% { opacity: 1; }
+}
+
+/* Tombol & menu */
+.btn-dark:hover { transform: translateY(-1px); box-shadow: 0 8px 18px -8px rgba(13, 13, 28, .65); }
+.btn-light:hover, .btn-ghost:hover { transform: translateY(-1px); }
+.hero .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -10px rgba(0, 0, 0, .5); }
+
+.icon-btn { transition: background-color .15s, color .15s, transform .2s var(--ease-spring); }
+.icon-btn:hover { transform: scale(1.08); }
+.icon-btn:active { transform: scale(.92); }
+
+.nav a .icon, .nav button .icon { transition: transform .3s var(--ease-spring); }
+.nav a:hover .icon, .nav button:hover .icon { transform: translateX(3px) scale(1.06); }
+.nav a.active { animation: pillIn .5s var(--ease-out) both; }
+@keyframes pillIn { from { opacity: .3; transform: scale(.96); } }
+
+/* Kartu ringkasan */
+.stat { transition: transform .3s var(--ease-out), box-shadow .3s var(--ease-out); }
+.stat:hover { transform: translateY(-3px); box-shadow: 0 6px 0 rgba(0,0,0,.05), 0 20px 34px -18px rgba(0,0,0,.35); }
+.stat .value { font-variant-numeric: tabular-nums; }
+
+/* Banner sambutan: kilau sekali lewat + pola titik bergerak pelan */
+.welcome::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.10) 50%, transparent 65%);
+  transform: translateX(-100%);
+  animation: sweep 1.8s .4s var(--ease-out) forwards;
+}
+@keyframes sweep { to { transform: translateX(100%); } }
+.welcome::after { animation: drift 40s linear infinite; }
+@keyframes drift { to { background-position: 140px 70px; } }
+
+/* Titik status koneksi berdenyut */
+.status-pill.on .dot { animation: ping 2.2s ease-out infinite; }
+@keyframes ping {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 162, 90, .45); }
+  70%  { box-shadow: 0 0 0 7px rgba(34, 162, 90, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 162, 90, 0); }
+}
+
+/* Bel bergoyang saat ada tap baru */
+.bell.ring > .icon-btn .icon { animation: ring .9s ease; transform-origin: 50% 8%; }
+@keyframes ring {
+  15% { transform: rotate(16deg); }
+  30% { transform: rotate(-13deg); }
+  45% { transform: rotate(9deg); }
+  60% { transform: rotate(-6deg); }
+  75% { transform: rotate(3deg); }
+}
+.bell.has-new .badge-dot { animation: dotPop .4s var(--ease-spring) both; }
+@keyframes dotPop { from { transform: scale(0); } }
+
+/* Badge baris live tap yang baru masuk */
+tr.row-new .badge { animation: badgePop .5s .15s var(--ease-spring) both; }
+@keyframes badgePop { from { opacity: 0; transform: scale(.4); } }
+
+/* Popup menutup dengan halus */
+.overlay.closing { animation: fadeOut .17s ease-in forwards; }
+.overlay.closing .modal { animation: modalOut .17s ease-in forwards; }
+@keyframes fadeOut { to { opacity: 0; } }
+@keyframes modalOut { to { opacity: 0; transform: translateY(6px) scale(.97); } }
+
+/* Form salah isi bergetar */
+.shake { animation: shake .42s cubic-bezier(.36, .07, .19, .97); }
+@keyframes shake {
+  20%, 80% { transform: translateX(-2px); }
+  35%, 65% { transform: translateX(5px); }
+  50%      { transform: translateX(-6px); }
+}
 
 /* ==========================================================================
    Responsif

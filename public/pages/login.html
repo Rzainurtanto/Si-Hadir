@@ -14,7 +14,7 @@
   <main class="hero-page">
     <form class="login-card hero-anim" id="login-form" novalidate>
       <div>
-        <span class="logo-dot" aria-label="SI-HADIR">SI-HADIR</span>
+        <span class="logo-dot" data-animate>SI-HADIR</span>
         <p class="subtitle">Masuk ke dashboard presensi</p>
       </div>
       <div>
@@ -35,15 +35,27 @@
     </form>
   </main>
 
+  <script src="/js/intro.js"></script>
   <script>
     const form = document.getElementById('login-form');
     const errorBox = document.getElementById('login-error');
+
+    function showError(message) {
+      errorBox.textContent = message;
+      form.classList.remove('shake');
+      void form.offsetWidth; // mulai ulang animasi
+      form.classList.add('shake');
+    }
+    form.addEventListener('animationend', (e) => {
+      if (e.animationName === 'shake') form.classList.remove('shake');
+    });
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorBox.textContent = '';
       const body = Object.fromEntries(new FormData(form));
       if (!body.username || !body.password) {
-        errorBox.textContent = 'Username dan password wajib diisi';
+        showError('Username dan password wajib diisi');
         return;
       }
       const btn = form.querySelector('button[type=submit]');
@@ -59,7 +71,7 @@
         if (!res.ok) throw new Error(data.message || 'Login gagal');
         location.href = '/dashboard';
       } catch (err) {
-        errorBox.textContent = err.message === 'Failed to fetch' ? 'Server tidak dapat dihubungi' : err.message;
+        showError(err.message === 'Failed to fetch' ? 'Server tidak dapat dihubungi' : err.message);
         btn.disabled = false;
         btn.textContent = 'Masuk';
       }

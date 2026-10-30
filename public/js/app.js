@@ -95,6 +95,64 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Animasi                                                             */
+  /* ------------------------------------------------------------------ */
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /** Pasang kelas animasi bertahap, lalu lepas lagi supaya tidak mengganggu efek hover. */
+  function stagger(elements, cls) {
+    [...elements].forEach((el, i) => {
+      el.style.setProperty('--i', i);
+      el.classList.add(cls);
+      const done = (e) => {
+        if (e.target !== el) return; // abaikan animasi milik elemen anak
+        el.classList.remove(cls);
+        el.removeEventListener('animationend', done);
+      };
+      el.addEventListener('animationend', done);
+    });
+  }
+
+  /** Baris tabel masuk berurutan (hanya beberapa baris pertama yang terlihat). */
+  function animateRows(tbody, max = 14) {
+    stagger([...tbody.children].slice(0, max), 'row-in');
+  }
+
+  /** Angka naik bertahap dari nilai sebelumnya ke `to`. */
+  function countUp(el, to, format = String) {
+    const from = Number(el.dataset.value || 0);
+    el.dataset.value = to;
+    if (reduceMotion || from === to) {
+      el.textContent = format(to);
+      return;
+    }
+    const start = performance.now();
+    const duration = 700;
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = format(Math.round(from + (to - from) * eased));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  /** Getarkan elemen (misalnya form yang salah isi). */
+  function shake(el) {
+    if (!el) return;
+    el.classList.remove('shake');
+    void el.offsetWidth; // mulai ulang animasi
+    el.classList.add('shake');
+    const done = (e) => {
+      if (e.animationName !== 'shake') return;
+      el.classList.remove('shake');
+      el.removeEventListener('animationend', done);
+    };
+    el.addEventListener('animationend', done);
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Toast                                                               */
   /* ------------------------------------------------------------------ */
 
@@ -124,6 +182,8 @@
   let openOverlay = null;
 
   function openModal(overlay) {
+    clearTimeout(overlay.closeTimer);
+    overlay.classList.remove('closing');
     overlay.hidden = false;
     openOverlay = overlay;
     const first = overlay.querySelector('input:not([type=hidden]), select, button.btn');
@@ -131,10 +191,16 @@
   }
 
   function closeModal(overlay = openOverlay) {
-    if (!overlay) return;
-    overlay.hidden = true;
+    if (!overlay || overlay.hidden || overlay.classList.contains('closing')) return;
     if (openOverlay === overlay) openOverlay = null;
-    overlay.dispatchEvent(new CustomEvent('modal:close'));
+    const finish = () => {
+      overlay.classList.remove('closing');
+      overlay.hidden = true;
+      overlay.dispatchEvent(new CustomEvent('modal:close'));
+    };
+    if (reduceMotion) return finish();
+    overlay.classList.add('closing');
+    overlay.closeTimer = setTimeout(finish, 170);
   }
 
   document.addEventListener('keydown', (e) => {
@@ -410,7 +476,11 @@
       state.notifications.unshift(item);
       state.notifications.length = Math.min(state.notifications.length, 15);
       renderNotifications();
-      if (!$('#notif-dropdown').classList.contains('open')) $('#bell').classList.add('has-new');
+      const bell = $('#bell');
+      if (!$('#notif-dropdown').classList.contains('open')) bell.classList.add('has-new');
+      bell.classList.remove('ring');
+      void bell.offsetWidth; // mulai ulang animasi
+      bell.classList.add('ring');
       emit('tap', item);
     };
     socket.on('ATTENDANCE_SUCCESS', onTap);
@@ -459,6 +529,14 @@
     hydrateIcons();
     renderSidebar(active);
     renderTopbar();
+
+    // Isi halaman muncul bertahap.
+    const main = $('.main > main');
+    if (main) stagger(main.classList.contains('card') ? [main] : main.children, 'enter');
+    $('#bell').addEventListener('animationend', (e) => {
+      if (e.animationName === 'ring') $('#bell').classList.remove('ring');
+    });
+
     renderNotifications();
     loadUser();
     loadTopbarData();
@@ -467,6 +545,7 @@
 
   window.SiHadir = {
     icon, escapeHtml, api, toast, badge, debounce,
+    animateRows, countUp, shake,
     ymd, tanggalPanjang, jam,
     openModal, closeModal, confirmDialog, datePicker,
     on, setUser, mountShell, hydrateIcons,
