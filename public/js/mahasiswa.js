@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  const { api, icon, escapeHtml, ymd, tanggalPanjang, toast, confirmDialog, openModal, closeModal, debounce, on } = window.SiHadir;
+  const { api, icon, escapeHtml, ymd, tanggalPanjang, toast, confirmDialog, openModal, closeModal, debounce, on, animateRows, shake } = window.SiHadir;
 
   SiHadir.mountShell('mahasiswa');
 
@@ -29,6 +29,7 @@
           </div>
         </td>
       </tr>`).join('');
+    animateRows(el('student-body'));
 
     el('student-empty').innerHTML = students.length
       ? ''
@@ -119,6 +120,7 @@
     for (const k of ['nama', 'nrp', 'kelas', 'uid_rfid']) data[k] = data[k].trim();
     if (!data.nama || !data.nrp || !data.kelas) {
       el('student-error').textContent = 'Nama, NRP, dan kelas wajib diisi';
+      shake(el('student-error'));
       return;
     }
 
@@ -136,6 +138,7 @@
       await load();
     } catch (err) {
       el('student-error').textContent = err.message;
+      shake(el('student-error'));
     } finally {
       btn.disabled = false;
     }

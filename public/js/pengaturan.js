@@ -1,10 +1,14 @@
 (function () {
   'use strict';
-  const { api, icon, escapeHtml, jam, toast, confirmDialog, on, setUser } = window.SiHadir;
+  const { api, icon, escapeHtml, jam, toast, confirmDialog, on, setUser, animateRows, shake } = window.SiHadir;
 
   SiHadir.mountShell('pengaturan');
 
   const el = (id) => document.getElementById(id);
+  const showError = (id, message) => {
+    el(id).textContent = message;
+    shake(el(id));
+  };
   let courses = [];
 
   /* ---------------- Sesi perkuliahan ---------------- */
@@ -94,7 +98,7 @@
         toleransi_menit: Number(f.toleransi_menit.value),
       };
       if ((manual && !body.nama_mk) || !body.kelas) {
-        el('session-error').textContent = 'Mata kuliah dan kelas wajib diisi';
+        showError('session-error', 'Mata kuliah dan kelas wajib diisi');
         return;
       }
       try {
@@ -102,7 +106,7 @@
         toast('Sesi dibuka, kartu siap di-tap');
         loadSession();
       } catch (err) {
-        el('session-error').textContent = err.message;
+        showError('session-error', err.message);
       }
     });
   }
@@ -121,6 +125,7 @@
           <button type="button" class="icon-btn danger" data-delete="${c.id}" aria-label="Hapus ${escapeHtml(c.nama_mk)}">${icon('trash')}</button>
         </div></td>
       </tr>`).join('');
+    animateRows(el('course-body'));
     el('course-empty').innerHTML = courses.length ? '' : '<div class="empty">Belum ada mata kuliah.</div>';
   }
 
@@ -148,7 +153,7 @@
     const body = Object.fromEntries([...new FormData(form)].map(([k, v]) => [k, String(v).trim()]));
     el('course-error').textContent = '';
     if (!body.kode_mk || !body.nama_mk || !body.kelas) {
-      el('course-error').textContent = 'Kode, nama, dan kelas wajib diisi';
+      showError('course-error', 'Kode, nama, dan kelas wajib diisi');
       return;
     }
     try {
@@ -157,7 +162,7 @@
       toast('Mata kuliah ditambahkan');
       loadSession();
     } catch (err) {
-      el('course-error').textContent = err.message;
+      showError('course-error', err.message);
     }
   });
 
@@ -244,11 +249,11 @@
       password_baru: f.password_baru.value,
     };
     if (!body.full_name) {
-      el('profile-error').textContent = 'Nama lengkap wajib diisi';
+      showError('profile-error', 'Nama lengkap wajib diisi');
       return;
     }
     if (body.password_baru && !body.password_lama) {
-      el('profile-error').textContent = 'Isi password lama untuk mengganti password';
+      showError('profile-error', 'Isi password lama untuk mengganti password');
       return;
     }
     try {
@@ -258,7 +263,7 @@
       setUser(data);
       toast(body.password_baru ? 'Profil dan password diperbarui' : 'Profil diperbarui');
     } catch (err) {
-      el('profile-error').textContent = err.message;
+      showError('profile-error', err.message);
     }
   });
 

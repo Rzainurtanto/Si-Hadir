@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  const { api, escapeHtml, badge, jam, ymd, toast, debounce, datePicker, on } = window.SiHadir;
+  const { api, escapeHtml, badge, jam, ymd, toast, debounce, datePicker, on, animateRows } = window.SiHadir;
 
   SiHadir.mountShell('riwayat');
 
@@ -56,7 +56,7 @@
     return `${params}${extra}`;
   }
 
-  async function loadLogs() {
+  async function loadLogs({ animate = true } = {}) {
     if (!sessions.length) {
       rows = [];
       return render();
@@ -64,13 +64,13 @@
     try {
       const { data } = await api(`/attendance/logs?${query()}`);
       rows = data;
-      render();
+      render({ animate });
     } catch (err) {
       toast(err.message, 'error');
     }
   }
 
-  function render() {
+  function render({ animate = true } = {}) {
     const q = el('search').value.trim().toLowerCase();
     const multi = !select.value && sessions.length > 1;
     const shown = q
@@ -87,6 +87,7 @@
         <td>${badge(r.status)}</td>
         <td>${jam(r.waktu_tap)}</td>
       </tr>`).join('');
+    if (animate) animateRows(el('log-body'));
 
     let empty = '';
     if (!sessions.length) empty = '<div class="empty"><strong>Tidak ada sesi pada tanggal ini</strong>Pilih tanggal lain di kalender.</div>';
@@ -102,8 +103,8 @@
     el('export-btn').disabled = !rows.length;
   }
 
-  select.addEventListener('change', loadLogs);
-  el('search').addEventListener('input', debounce(render, 150));
+  select.addEventListener('change', () => loadLogs());
+  el('search').addEventListener('input', debounce(() => render(), 150));
 
   el('export-btn').addEventListener('click', () => {
     location.href = `/api/attendance/logs?${query('&format=csv')}`;
@@ -111,7 +112,8 @@
 
   /* ---------------- Real-time ---------------- */
 
-  const reloadLogs = debounce(loadLogs, 400);
+  // Pembaruan real-time tidak perlu memutar ulang animasi seluruh tabel.
+  const reloadLogs = debounce(() => loadLogs({ animate: false }), 400);
   on('tap', (item) => {
     if (sessions.some((s) => s.id === item.sesi_id)) reloadLogs();
   });

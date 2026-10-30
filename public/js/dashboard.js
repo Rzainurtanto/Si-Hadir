@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  const { api, icon, escapeHtml, badge, jam, ymd, tanggalPanjang, toast, confirmDialog, on } = window.SiHadir;
+  const { api, icon, escapeHtml, badge, jam, ymd, tanggalPanjang, toast, confirmDialog, on, countUp, animateRows } = window.SiHadir;
 
   SiHadir.mountShell('dashboard');
 
@@ -49,7 +49,7 @@
     const r = stats.ringkasan;
     if (r) {
       const pct = r.total_mahasiswa ? Math.min(100, Math.round((r.total_kehadiran / r.total_mahasiswa) * 100)) : 0;
-      el('stat-total').textContent = `${r.total_kehadiran}/${r.total_mahasiswa}`;
+      countUp(el('stat-total'), r.total_kehadiran, (n) => `${n}/${r.total_mahasiswa}`);
       el('stat-bar').style.width = `${pct}%`;
       el('stat-progress').setAttribute('aria-valuenow', String(pct));
       el('mini-stats').innerHTML = `
@@ -58,10 +58,16 @@
         <span>Ditolak <b>${r.ditolak}</b></span>`;
     } else {
       el('stat-total').textContent = '–';
+      delete el('stat-total').dataset.value;
       el('stat-bar').style.width = '0';
       el('mini-stats').textContent = 'Belum ada sesi';
     }
-    el('stat-avg').textContent = stats.rata_rata_kehadiran == null ? '–' : `${stats.rata_rata_kehadiran}%`;
+    if (stats.rata_rata_kehadiran == null) {
+      el('stat-avg').textContent = '–';
+      delete el('stat-avg').dataset.value;
+    } else {
+      countUp(el('stat-avg'), stats.rata_rata_kehadiran, (n) => `${n}%`);
+    }
 
     const shown = stats.sesi_aktif || stats.sesi_terakhir;
     currentSesiId = shown ? shown.id : null;
@@ -120,6 +126,7 @@
     }
     const { data } = await api(`/attendance/feed?sesi_id=${currentSesiId}`);
     body.innerHTML = data.map((item) => `<tr>${rowHtml(item)}</tr>`).join('');
+    animateRows(body);
     setEmpty(data.length === 0);
   }
 
@@ -147,7 +154,12 @@
   on('tap', prependTap);
   on('stats', (stats) => { renderSession(stats); renderStats(stats); });
   on('session', refresh);
-  on('reconnect', refresh);
+  // Koneksi pertama tidak perlu memuat ulang; hanya setelah sempat terputus.
+  let connectedBefore = false;
+  on('reconnect', () => {
+    if (connectedBefore) refresh();
+    connectedBefore = true;
+  });
 
   refresh();
 })();
