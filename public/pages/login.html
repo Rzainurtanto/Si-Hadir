@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Masuk · SI-HADIR</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Doto:wght,ROND@900,100&display=swap">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <main class="hero-page">
+    <form class="login-card hero-anim" id="login-form" novalidate>
+      <div>
+        <span class="logo-dot" aria-label="SI-HADIR">SI-HADIR</span>
+        <p class="subtitle">Masuk ke dashboard presensi</p>
+      </div>
+      <div>
+        <label class="field">
+          <span>Username</span>
+          <input name="username" autocomplete="username" required autofocus>
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <p class="form-error" id="login-error" role="alert"></p>
+      </div>
+      <div>
+        <button class="btn btn-dark" type="submit">Masuk</button>
+        <a class="back" href="/">← Kembali ke beranda</a>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const form = document.getElementById('login-form');
+    const errorBox = document.getElementById('login-error');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.textContent = '';
+      const body = Object.fromEntries(new FormData(form));
+      if (!body.username || !body.password) {
+        errorBox.textContent = 'Username dan password wajib diisi';
+        return;
+      }
+      const btn = form.querySelector('button[type=submit]');
+      btn.disabled = true;
+      btn.textContent = 'Memeriksa…';
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.message || 'Login gagal');
+        location.href = '/dashboard';
+      } catch (err) {
+        errorBox.textContent = err.message === 'Failed to fetch' ? 'Server tidak dapat dihubungi' : err.message;
+        btn.disabled = false;
+        btn.textContent = 'Masuk';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · SI-HADIR</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Doto:wght,ROND@900,100&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="theme-gray">
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+
+      <main>
+        <section class="welcome" aria-labelledby="welcome-name">
+          <p class="hello">Selamat Datang,</p>
+          <h1 class="name" id="welcome-name">…</h1>
+          <p class="role" id="welcome-role">&nbsp;</p>
+          <span class="date-chip"><i data-icon="calendar"></i><span id="today"></span></span>
+        </section>
+
+        <div class="session-strip" id="session-strip" aria-live="polite">
+          <span class="s-icon"><i data-icon="alarm"></i></span>
+          <div class="s-text"><div class="s-name">Memuat sesi…</div></div>
+        </div>
+
+        <h2 class="section-title"><i data-icon="chart"></i>Ringkasan Presensi</h2>
+        <div class="stats">
+          <div class="card stat">
+            <div class="label">Total Kehadiran</div>
+            <div class="value" id="stat-total">–</div>
+            <div class="progress" role="progressbar" aria-label="Persentase kehadiran sesi" aria-valuemin="0" aria-valuemax="100" id="stat-progress"><span id="stat-bar"></span></div>
+            <div class="mini-stats" id="mini-stats"></div>
+          </div>
+          <div class="card stat">
+            <div class="label">Rata-rata Kehadiran</div>
+            <div class="value" id="stat-avg">–</div>
+            <div class="caption">Berdasarkan data presensi</div>
+          </div>
+        </div>
+
+        <section class="card live-card" aria-labelledby="live-title">
+          <h2 class="live-title" id="live-title">Update Live Tap <small id="live-caption"></small></h2>
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr><th>Nama</th><th>NRP</th><th>Kelas</th><th>Status</th><th>Waktu</th></tr>
+              </thead>
+              <tbody id="live-body"></tbody>
+            </table>
+          </div>
+          <div id="live-empty"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

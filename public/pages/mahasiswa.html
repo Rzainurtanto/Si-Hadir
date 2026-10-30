@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data Mahasiswa · SI-HADIR</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Doto:wght,ROND@900,100&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="theme-pink">
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+
+      <main class="card panel">
+        <div class="panel-head">
+          <div>
+            <h1 class="panel-title">Data Mahasiswa</h1>
+            <span class="date-chip"><i data-icon="calendar"></i><span id="today"></span></span>
+          </div>
+          <div class="panel-tools">
+            <label class="search">
+              <i data-icon="search"></i>
+              <span class="sr-only">Cari mahasiswa</span>
+              <input type="search" id="search" placeholder="Cari Mahasiswa" autocomplete="off">
+            </label>
+            <button type="button" class="btn btn-dark btn-sm" id="add-btn"><i data-icon="plus"></i>Tambah Mahasiswa</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr><th>Nama</th><th>NRP</th><th>Kelas</th><th>UID Kartu</th><th class="actions">Aksi</th></tr>
+            </thead>
+            <tbody id="student-body"></tbody>
+          </table>
+        </div>
+        <div id="student-empty"></div>
+        <div class="table-foot"><span id="student-count"></span></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="overlay" id="student-modal" hidden>
+    <form class="modal" id="student-form" role="dialog" aria-modal="true" aria-labelledby="student-title" novalidate>
+      <div class="modal-head">
+        <h3 id="student-title">Tambahkan Data Mahasiswa</h3>
+        <button type="button" class="icon-btn" data-close aria-label="Tutup"><i data-icon="x"></i></button>
+      </div>
+
+      <div class="uid-fill" id="uid-fill" hidden>
+        <span id="uid-fill-text"></span>
+        <button type="button" class="btn btn-light btn-sm" id="uid-fill-btn">Pakai</button>
+      </div>
+
+      <input type="hidden" name="id">
+      <label class="field">
+        <span>Nama *</span>
+        <input name="nama" placeholder="Masukkan Nama" required maxlength="100">
+      </label>
+      <label class="field">
+        <span>NRP *</span>
+        <input name="nrp" placeholder="Masukkan NRP" required maxlength="20" inputmode="numeric">
+      </label>
+      <label class="field">
+        <span>Kelas *</span>
+        <input name="kelas" placeholder="Masukkan Kelas" required maxlength="30" list="kelas-list">
+        <datalist id="kelas-list"></datalist>
+      </label>
+      <label class="field">
+        <span>UID Kartu RFID</span>
+        <input name="uid_rfid" placeholder="Contoh: A34B22F1" maxlength="32" autocomplete="off" spellcheck="false">
+        <small class="hint">Boleh dikosongkan. UID terisi otomatis saat mahasiswa pertama kali tap kartu.</small>
+      </label>
+      <p class="form-error" id="student-error" role="alert"></p>
+
+      <div class="modal-foot">
+        <button type="button" class="btn btn-light" data-close>Batal</button>
+        <button type="submit" class="btn btn-dark" id="student-submit">Tambah</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/mahasiswa.js"></script>
+</body>
+</html>

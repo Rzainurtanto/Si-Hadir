@@ -1,0 +1,21 @@
+{
+  "name": "si-hadir",
+  "version": "1.0.0",
+  "description": "SI-HADIR: sistem presensi perkuliahan berbasis RFID (ESP8266) dengan web dashboard real-time",
+  "private": true,
+  "main": "server/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "seed": "node server/seed.js",
+    "simulate": "node server/simulate-tap.js"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "socket.io": "^4.8.4"
+  }
+}

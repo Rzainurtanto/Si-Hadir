@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pengaturan · SI-HADIR</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Doto:wght,ROND@900,100&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="theme-pink">
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+
+      <main class="settings-grid">
+        <!-- Sesi perkuliahan -->
+        <section class="card settings-card" id="sesi" aria-labelledby="sesi-title">
+          <h1 class="panel-title" id="sesi-title"><i data-icon="alarm"></i>Sesi Perkuliahan</h1>
+          <div id="session-box"><p class="desc">Memuat…</p></div>
+        </section>
+
+        <!-- Akun -->
+        <section class="card settings-card" aria-labelledby="akun-title">
+          <h2 class="panel-title" id="akun-title"><i data-icon="user"></i>Akun</h2>
+          <p class="desc">Nama dan jabatan tampil di halaman dashboard.</p>
+          <form id="profile-form" novalidate>
+            <label class="field"><span>Username</span><input name="username" disabled></label>
+            <div class="field-row">
+              <label class="field"><span>Nama Lengkap *</span><input name="full_name" required maxlength="80"></label>
+              <label class="field"><span>Jabatan</span><input name="role" maxlength="40" placeholder="Pengajar"></label>
+            </div>
+            <div class="field-row">
+              <label class="field"><span>Password Lama</span><input name="password_lama" type="password" autocomplete="current-password"></label>
+              <label class="field"><span>Password Baru</span><input name="password_baru" type="password" autocomplete="new-password" minlength="6"></label>
+            </div>
+            <p class="form-error" id="profile-error" role="alert"></p>
+            <div class="modal-foot"><button type="submit" class="btn btn-dark btn-sm">Simpan</button></div>
+          </form>
+        </section>
+
+        <!-- Mata kuliah -->
+        <section class="card settings-card" aria-labelledby="mk-title">
+          <h2 class="panel-title" id="mk-title"><i data-icon="book"></i>Mata Kuliah</h2>
+          <p class="desc">Daftar mata kuliah yang bisa dipilih saat membuka sesi.</p>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th>Kode</th><th>Mata Kuliah</th><th>Kelas</th><th class="actions"><span class="sr-only">Aksi</span></th></tr></thead>
+              <tbody id="course-body"></tbody>
+            </table>
+          </div>
+          <div id="course-empty"></div>
+          <form id="course-form" class="course-form" novalidate>
+            <label class="field"><span>Kode</span><input name="kode_mk" placeholder="TRM301" maxlength="20" required></label>
+            <label class="field"><span>Kelas</span><input name="kelas" placeholder="3 D4 TRM A" maxlength="30" required></label>
+            <label class="field field-name"><span>Nama Mata Kuliah</span><input name="nama_mk" placeholder="Workshop Kecerdasan Buatan" maxlength="100" required></label>
+            <p class="form-error field-name" id="course-error" role="alert"></p>
+            <div class="modal-foot"><button type="submit" class="btn btn-dark btn-sm"><i data-icon="plus"></i>Tambah Mata Kuliah</button></div>
+          </form>
+        </section>
+
+        <!-- Perangkat -->
+        <section class="card settings-card" aria-labelledby="dev-title">
+          <h2 class="panel-title" id="dev-title"><i data-icon="nfc"></i>Perangkat ESP8266</h2>
+          <p class="desc">Isi alamat ini di firmware ESP8266. Laptop dan ESP8266 harus terhubung ke WiFi yang sama.</p>
+          <div id="tap-urls"></div>
+
+          <h3 class="panel-title" style="font-size:15px;margin-top:20px">Simulasi Tap Kartu</h3>
+          <p class="desc">Uji alur presensi tanpa perangkat. Data dikirim persis seperti dari ESP8266.</p>
+          <form id="sim-form" novalidate>
+            <div class="field-row">
+              <label class="field"><span>UID Kartu</span><input name="uid" placeholder="A34B22F1" spellcheck="false"></label>
+              <label class="field"><span>NRP</span><input name="nrp" placeholder="5324600006"></label>
+            </div>
+            <div class="field-row">
+              <label class="field"><span>Nama</span><input name="nama" placeholder="Rafif Nuha"></label>
+              <label class="field"><span>Kelas</span><input name="kelas" placeholder="3 D4 TRM A"></label>
+            </div>
+            <div class="modal-foot" style="margin-top:4px">
+              <button type="button" class="btn btn-light btn-sm" id="sim-random">Isi Mahasiswa Acak</button>
+              <button type="submit" class="btn btn-dark btn-sm"><i data-icon="nfc"></i>Kirim Tap</button>
+            </div>
+          </form>
+          <div class="sim-result" id="sim-result" aria-live="polite"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/pengaturan.js"></script>
+</body>
+</html>
