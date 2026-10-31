@@ -296,6 +296,7 @@
   const NAV = [
     { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: 'home' },
     { id: 'mahasiswa', href: '/mahasiswa', label: 'Data Mahasiswa', icon: 'idCard' },
+    { id: 'perkuliahan', href: '/perkuliahan', label: 'Perkuliahan', icon: 'book' },
     { id: 'riwayat', href: '/riwayat', label: 'Riwayat Presensi', icon: 'fileSearch' },
     { id: 'pengaturan', href: '/pengaturan', label: 'Pengaturan', icon: 'settings' },
   ];

@@ -152,18 +152,16 @@ function createApiRouter(broadcast) {
   api.post('/session/start', (req, res) => {
     if (attendance.getActiveSession()) return fail(res, 409, 'Masih ada sesi yang aktif. Tutup dulu sebelum membuka sesi baru');
 
-    let namaMk = text(req.body?.nama_mk);
-    let kelas = text(req.body?.kelas);
-    const mataKuliahId = req.body?.mata_kuliah_id ? Number(req.body.mata_kuliah_id) : null;
+    const mataKuliahId = Number(req.body?.mata_kuliah_id);
     const toleransi = Number(req.body?.toleransi_menit ?? 15);
 
-    if (mataKuliahId) {
-      const mk = db.prepare('SELECT * FROM mata_kuliah WHERE id = ?').get(mataKuliahId);
-      if (!mk) return fail(res, 404, 'Mata kuliah tidak ditemukan');
-      namaMk = namaMk || mk.nama_mk;
-      kelas = kelas || mk.kelas;
-    }
-    if (!namaMk || !kelas) return fail(res, 400, 'Mata kuliah dan kelas wajib diisi');
+    // Nama mata kuliah dan kelas selalu diambil dari data mata kuliah, tidak bisa diisi bebas.
+    if (!mataKuliahId) return fail(res, 400, 'Pilih mata kuliah terlebih dahulu');
+    const mk = db.prepare('SELECT * FROM mata_kuliah WHERE id = ?').get(mataKuliahId);
+    if (!mk) return fail(res, 404, 'Mata kuliah tidak ditemukan');
+    const namaMk = mk.nama_mk;
+    const kelas = mk.kelas;
+
     if (!Number.isInteger(toleransi) || toleransi < 0 || toleransi > 240) {
       return fail(res, 400, 'Toleransi harus angka 0 sampai 240 menit');
     }

@@ -37,7 +37,7 @@ app.get('/login', (req, res, next) => {
   next();
 }, page('login'));
 
-for (const name of ['dashboard', 'mahasiswa', 'riwayat', 'pengaturan']) {
+for (const name of ['dashboard', 'mahasiswa', 'perkuliahan', 'riwayat', 'pengaturan']) {
   app.get(`/${name}`, auth.requirePageAuth, page(name));
 }
 
