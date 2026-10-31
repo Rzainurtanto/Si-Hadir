@@ -15,7 +15,7 @@ npm start          # buka http://localhost:3000
 
 Saat pertama kali jalan, server membuat akun **admin / admin123**. Ganti password di menu **Pengaturan**.
 
-Untuk mencoba tanpa ESP8266: buka sesi di **Pengaturan**, lalu pakai **Simulasi Tap Kartu** di halaman yang sama,
+Untuk mencoba tanpa ESP8266: buka sesi di **Perkuliahan**, lalu pakai **Simulasi Tap Kartu** di menu **Pengaturan**,
 atau jalankan `npm run simulate` di terminal lain.
 
 ## Halaman
@@ -26,8 +26,9 @@ atau jalankan `npm run simulate` di terminal lain.
 | `/login`      | Masuk admin / dosen |
 | `/dashboard`  | Sesi aktif, ringkasan presensi, tabel tap kartu live |
 | `/mahasiswa`  | Data mahasiswa + UID kartu (tambah, edit, hapus) |
+| `/perkuliahan`| Buka/tutup sesi (kelas mengikuti mata kuliah), kelola mata kuliah |
 | `/riwayat`    | Riwayat per tanggal / sesi, export CSV |
-| `/pengaturan` | Buka/tutup sesi, mata kuliah, alamat ESP8266, simulator, akun |
+| `/pengaturan` | Alamat ESP8266, simulator tap kartu, akun |
 
 ## Untuk ESP8266
 

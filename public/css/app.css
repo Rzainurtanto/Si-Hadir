@@ -532,6 +532,11 @@ tr.row-new.settled td { background: transparent; }
 }
 .field input:focus, .field select:focus { outline: none; border-color: #c4c4cf; background-color: #fff; }
 .field input::placeholder { color: #8a8a8a; }
+/* Kolom terkunci (misalnya Kelas yang mengikuti mata kuliah) */
+.field input[readonly], .field input:disabled {
+  background: #e9e9ec; color: var(--ink-2); cursor: not-allowed;
+  border-color: transparent;
+}
 .field .hint { display: block; margin-top: 5px; font-family: var(--font-data); font-size: 10.5px; color: var(--muted); }
 .field-row { display: flex; gap: 8px; align-items: flex-end; }
 .field-row .field { flex: 1; }

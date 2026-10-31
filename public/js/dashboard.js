@@ -40,7 +40,7 @@
         </div>
         <div class="s-actions">
           <span class="pill-status idle">Tidak Aktif</span>
-          <a class="btn btn-dark btn-sm" href="/pengaturan#sesi">${icon('play')}Buka Sesi</a>
+          <a class="btn btn-dark btn-sm" href="/perkuliahan">${icon('play')}Buka Sesi</a>
         </div>`;
     }
   }

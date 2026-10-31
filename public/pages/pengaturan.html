@@ -17,15 +17,9 @@
       <header class="topbar" id="topbar"></header>
 
       <main class="settings-grid">
-        <!-- Sesi perkuliahan -->
-        <section class="card settings-card" id="sesi" aria-labelledby="sesi-title">
-          <h1 class="panel-title" id="sesi-title"><i data-icon="alarm"></i>Sesi Perkuliahan</h1>
-          <div id="session-box"><p class="desc">Memuat…</p></div>
-        </section>
-
         <!-- Akun -->
         <section class="card settings-card" aria-labelledby="akun-title">
-          <h2 class="panel-title" id="akun-title"><i data-icon="user"></i>Akun</h2>
+          <h1 class="panel-title" id="akun-title"><i data-icon="user"></i>Akun</h1>
           <p class="desc">Nama dan jabatan tampil di halaman dashboard.</p>
           <form id="profile-form" novalidate>
             <label class="field"><span>Username</span><input name="username" disabled></label>
@@ -39,26 +33,6 @@
             </div>
             <p class="form-error" id="profile-error" role="alert"></p>
             <div class="modal-foot"><button type="submit" class="btn btn-dark btn-sm">Simpan</button></div>
-          </form>
-        </section>
-
-        <!-- Mata kuliah -->
-        <section class="card settings-card" aria-labelledby="mk-title">
-          <h2 class="panel-title" id="mk-title"><i data-icon="book"></i>Mata Kuliah</h2>
-          <p class="desc">Daftar mata kuliah yang bisa dipilih saat membuka sesi.</p>
-          <div class="table-wrap">
-            <table class="data">
-              <thead><tr><th>Kode</th><th>Mata Kuliah</th><th>Kelas</th><th class="actions"><span class="sr-only">Aksi</span></th></tr></thead>
-              <tbody id="course-body"></tbody>
-            </table>
-          </div>
-          <div id="course-empty"></div>
-          <form id="course-form" class="course-form" novalidate>
-            <label class="field"><span>Kode</span><input name="kode_mk" placeholder="TRM301" maxlength="20" required></label>
-            <label class="field"><span>Kelas</span><input name="kelas" placeholder="3 D4 TRM A" maxlength="30" required></label>
-            <label class="field field-name"><span>Nama Mata Kuliah</span><input name="nama_mk" placeholder="Workshop Kecerdasan Buatan" maxlength="100" required></label>
-            <p class="form-error field-name" id="course-error" role="alert"></p>
-            <div class="modal-foot"><button type="submit" class="btn btn-dark btn-sm"><i data-icon="plus"></i>Tambah Mata Kuliah</button></div>
           </form>
         </section>
 
