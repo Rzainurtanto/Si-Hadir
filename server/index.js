@@ -84,6 +84,14 @@ app.use((err, req, res, next) => {
 
 const created = auth.ensureDefaultAdmin();
 
+if (process.env.AUTO_SEED === 'true') {
+  try {
+    require('./seed');
+  } catch (err) {
+    console.error('  Peringatan auto-seed:', err.message);
+  }
+}
+
 server.listen(PORT, () => {
   const lanIps = Object.values(os.networkInterfaces())
     .flat()

@@ -1,0 +1,62 @@
+name: CI/CD Pipeline - SI-HADIR
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: 🧪 CI - Syntax & Lint Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Test server syntax & modules
+        run: npm test
+
+  deploy:
+    name: 🚀 CD - Auto Deploy to Server
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: 🌐 Deploy via SSH to Remote Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script_stop: true
+          script: |
+            TARGET_DIR="${{ secrets.SERVER_PATH || '~/si-hadir' }}"
+            echo "Memeriksa direktori tujuan di server: $TARGET_DIR"
+            mkdir -p "$TARGET_DIR"
+            cd "$TARGET_DIR"
+
+            # Inisialisasi clone jika folder belum ada git repo
+            if [ ! -d ".git" ]; then
+              echo "Melakukan clone repositori branch develop..."
+              git clone -b develop https://github.com/${{ github.repository }}.git . 2>/dev/null || \
+              git clone -b develop https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
+            fi
+
+            # Jalankan script deployment otomatis
+            chmod +x deploy.sh
+            ./deploy.sh
+
