@@ -9,7 +9,8 @@
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "seed": "node server/seed.js",
-    "simulate": "node server/simulate-tap.js"
+    "simulate": "node server/simulate-tap.js",
+    "test": "node --check server/index.js server/api.js server/attendance.js server/auth.js server/db.js server/seed.js server/simulate-tap.js server/time.js"
   },
   "engines": {
     "node": ">=24"

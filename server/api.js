@@ -43,6 +43,9 @@ function createApiRouter(broadcast) {
   const api = express.Router();
   api.use(express.json({ limit: '32kb' }));
 
+  // Endpoint monitoring kesehatan server (Health Check)
+  api.get('/health', (req, res) => res.json({ status: 'ok', uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() }));
+
   /* ------------------------------------------------------------------ */
   /* Perangkat ESP8266                                                   */
   /* ------------------------------------------------------------------ */
