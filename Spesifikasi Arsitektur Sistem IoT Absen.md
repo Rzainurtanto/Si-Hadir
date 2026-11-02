@@ -67,15 +67,22 @@ sequenceDiagram
             H->>H: OLED "ACCESS DENIED / BELUM TERDAFTAR" + Beep panjang
             S->>W: Socket broadcast event "TAP_REJECTED"
         else Mahasiswa Terdaftar
-            S->>D: Periksa apakah sudah absen di sesi ini
-            alt Sudah Pernah Tap (Duplikat)
-                S-->>H: HTTP 200 { status: "ALREADY_TAPPED", message: "SUDAH ABSEN" }
-                H->>H: OLED "STATUS: SUDAH ABSEN" + Beep peringatan
-            else Belum Absen
-                S->>D: Simpan record presensi (Timestamp, Status: HADIR / TERLAMBAT)
-                S-->>H: HTTP 200 { status: "ACCEPTED", nama: "...", nrp: "...", status_kehadiran: "HADIR" }
-                H->>H: OLED Sci-Fi "STATUS: VERIFIED / ACCESS GRANTED" + Beep 2x
-                S->>W: Socket broadcast event "ATTENDANCE_SUCCESS" (Live Update Feed)
+            S->>D: Periksa kesesuaian kelas (Mahasiswa vs Sesi Aktif)
+            alt Kelas Mahasiswa Tidak Sesuai (e.g. Siswa Kelas B tap di Sesi Kelas A)
+                S-->>H: HTTP 200 { status: "DENIED", message: "Akses Ditolak: Bukan Mahasiswa Kelas A" }
+                H->>H: OLED "AKSES DITOLAK / SALAH KELAS" + Beep panjang
+                S->>W: Socket broadcast event "TAP_REJECTED"
+            else Kelas Sesuai
+                S->>D: Periksa apakah sudah absen di sesi ini
+                alt Sudah Pernah Tap (Duplikat)
+                    S-->>H: HTTP 200 { status: "ALREADY_TAPPED", message: "SUDAH ABSEN" }
+                    H->>H: OLED "STATUS: SUDAH ABSEN" + Beep peringatan
+                else Belum Absen
+                    S->>D: Simpan record presensi (Timestamp, Status: HADIR / TERLAMBAT)
+                    S-->>H: HTTP 200 { status: "ACCEPTED", nama: "...", nrp: "...", status_kehadiran: "HADIR" }
+                    H->>H: OLED Sci-Fi "STATUS: VERIFIED / ACCESS GRANTED" + Beep 2x
+                    S->>W: Socket broadcast event "ATTENDANCE_SUCCESS" (Live Update Feed)
+                end
             end
         end
     end
@@ -125,7 +132,22 @@ sequenceDiagram
       "message": "Akses Ditolak: Mahasiswa Belum Terdaftar"
     }
     ```
-  - **Skenario 3: Ditolak - Sudah Absen Sebelumnya (Already Tapped):**
+  - **Skenario 3: Ditolak - Kelas Tidak Sesuai (Wrong Class Denied):**
+    ```json
+    {
+      "success": false,
+      "status": "DENIED",
+      "code": 403,
+      "message": "Akses Ditolak: Anda Terdaftar di Kelas 3 D4 TRM B, Tidak Berhak Absen di Sesi Kelas 3 D4 TRM A",
+      "data": {
+        "nama": "Budi Santoso",
+        "nrp": "5324600099",
+        "kelas": "3 D4 TRM B",
+        "kelas_sesi": "3 D4 TRM A"
+      }
+    }
+    ```
+  - **Skenario 4: Ditolak - Sudah Absen Sebelumnya (Already Tapped):**
     ```json
     {
       "success": false,
@@ -134,7 +156,7 @@ sequenceDiagram
       "message": "Peringatan: Anda Sudah Melakukan Absen Pada Sesi Ini"
     }
     ```
-  - **Skenario 4: Ditolak - Tidak Ada Sesi Aktif (No Session):**
+  - **Skenario 5: Ditolak - Tidak Ada Sesi Aktif (No Session):**
     ```json
     {
       "success": false,

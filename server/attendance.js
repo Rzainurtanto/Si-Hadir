@@ -81,6 +81,30 @@ function processTap(input) {
 
     const identity = { uid: card.uid || mhs.uid_rfid, nrp: mhs.nrp, nama: mhs.nama, kelas: mhs.kelas };
 
+    // Keamanan: Mahasiswa hanya boleh presensi pada sesi perkuliahan untuk kelasnya sendiri.
+    const kelasMhs = String(mhs.kelas ?? '').trim().toUpperCase();
+    const kelasSesi = String(sesi.kelas ?? '').trim().toUpperCase();
+    if (kelasMhs !== kelasSesi) {
+      const message = `Akses Ditolak: Anda Terdaftar di Kelas ${mhs.kelas}, Tidak Berhak Absen di Sesi Kelas ${sesi.kelas}`;
+      const feedItem = logTap(sesi.id, identity, 'DITOLAK', message, now);
+      return {
+        body: {
+          success: false,
+          status: 'DENIED',
+          code: 403,
+          message,
+          data: {
+            nama: mhs.nama,
+            nrp: mhs.nrp,
+            kelas: mhs.kelas,
+            kelas_sesi: sesi.kelas,
+          },
+        },
+        event: 'TAP_REJECTED',
+        feedItem,
+      };
+    }
+
     const existing = db.prepare('SELECT id FROM presensi WHERE sesi_id = ? AND mahasiswa_id = ?').get(sesi.id, mhs.id);
     if (existing) {
       const message = 'Peringatan: Anda Sudah Melakukan Absen Pada Sesi Ini';

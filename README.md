@@ -92,6 +92,7 @@ Content-Type: application/json
 - Pakai IP server/laptop di jaringan WiFi yang sama atau IP publik VPS. Alamatnya tampil saat `npm start` dan di halaman Pengaturan.
 - Sesuai diagram alur di spesifikasi, server selalu membalas **HTTP 200**. Hasilnya dibaca dari field `status`:
   `ACCEPTED`, `DENIED`, `ALREADY_TAPPED`, atau `NO_SESSION`.
+- **Validasi Keamanan Kelas**: Mahasiswa hanya bisa melakukan presensi pada sesi mata kuliah untuk kelasnya sendiri. Jika mahasiswa kelas B melakukan tap pada sesi yang dibuka untuk kelas A, server menolak akses (`DENIED`) dan mencatatnya di log penolakan.
 - Mahasiswa dicocokkan lewat UID kartu. Kalau UID belum terdaftar tapi NRP-nya cocok dengan mahasiswa yang belum punya UID,
   UID kartu itu otomatis disimpan ke data mahasiswa tersebut.
 - Status `HADIR` kalau tap masih dalam batas toleransi sejak sesi dibuka, selebihnya `TERLAMBAT`.
