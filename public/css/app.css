@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    SI-HADIR — stylesheet utama
    ========================================================================== */
 
@@ -791,6 +791,114 @@ tr.row-new.settled td { background: transparent; }
   .stat .value { font-size: 34px; }
   .welcome { padding: 22px 20px; }
 }
+
+
+
+/* ==========================================================================
+   Animasi Perkuliahan
+   ========================================================================== */
+
+/* -- keyframes baru -- */
+@keyframes fadeSlideUp   { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes fadeSlideLeft { from { opacity: 0; transform: translateX(-22px); } to { opacity: 1; transform: none; } }
+@keyframes scaleIn       { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes tabContent    { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes rowSlide      { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+@keyframes cardPop       { from { opacity: 0; transform: translateY(20px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes bannerReveal  { from { opacity: 0; transform: translateY(-12px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes countBounce   { 0%,100% { transform: scale(1); } 40% { transform: scale(1.35); } 70% { transform: scale(.9); } }
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+/* -- Transisi antar view (list <-> detail) -- */
+.perk-view { animation: fadeSlideUp .45s cubic-bezier(.2,.7,.2,1) both; }
+
+/* -- Grid kartu: tiap kartu muncul berurutan -- */
+.mk-card {
+  animation: cardPop .5s cubic-bezier(.2,.7,.2,1) both;
+  animation-delay: calc(var(--card-i, 0) * 60ms);
+}
+
+/* -- Hover kartu: sudah ada, tambah efek kilap sekali lewat -- */
+.mk-card::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.13) 50%, transparent 70%);
+  opacity: 0; transition: opacity .3s;
+  pointer-events: none;
+}
+.mk-card:hover::after { opacity: 1; animation: sweep .6s var(--ease-out) forwards; }
+
+/* -- Badge inisial berputar sedikit saat kartu hover -- */
+.mk-card:hover .mk-card-badge {
+  transform: rotate(-6deg) scale(1.08);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.mk-card-badge { transition: transform .2s ease; }
+
+/* -- Tombol "Buka Presensi" di kartu -- */
+.mk-card-open { transition: background-color .15s, transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s; }
+.mk-card-open:hover { transform: scale(1.06); box-shadow: 0 4px 14px -4px rgba(0,0,0,.3); }
+.mk-card-open:active { transform: scale(.95); }
+
+/* -- Banner MK (kiri atas detail) -- */
+.perk-mk-banner { animation: bannerReveal .5s .05s cubic-bezier(.2,.7,.2,1) both; }
+
+/* -- Panel sesi & presensi masuk bertahap -- */
+.perk-sesi-card { animation: fadeSlideLeft .45s .12s cubic-bezier(.2,.7,.2,1) both; }
+.perk-presensi-card { animation: fadeSlideUp .45s .08s cubic-bezier(.2,.7,.2,1) both; }
+
+/* -- Baris mahasiswa muncul berurutan -- */
+.perk-mhs-row {
+  animation: rowSlide .35s cubic-bezier(.2,.7,.2,1) both;
+  animation-delay: calc(var(--row-i, 0) * 35ms);
+}
+
+/* -- Avatar berputar kecil saat hadir -- */
+.perk-mhs-avatar--hadir {
+  animation: scaleIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+
+/* -- Tab: garis bawah bergerak halus -- */
+.perk-tab {
+  position: relative; overflow: hidden;
+}
+.perk-tab::after {
+  content: ''; position: absolute; bottom: -1px; left: 50%; right: 50%;
+  height: 2px; background: var(--ink);
+  transition: left .28s cubic-bezier(.4,0,.2,1), right .28s cubic-bezier(.4,0,.2,1);
+}
+.perk-tab.active::after { left: 0; right: 0; }
+
+/* Badge count bounce saat angka berubah */
+.perk-tab-count.updated { animation: countBounce .4s cubic-bezier(.34,1.56,.64,1); }
+
+/* -- Isi tab beranimasi saat switch -- */
+.perk-list.tab-enter { animation: tabContent .32s cubic-bezier(.2,.7,.2,1) both; }
+
+/* -- Skeleton loading sebelum data datang -- */
+.perk-skeleton {
+  height: 52px; border-radius: 8px; margin: 6px 20px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* -- Pill status sesi: denyut lebih halus -- */
+.pill-status.live {
+  animation: livePulse 2.4s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34,162,90,.0); }
+  50%       { box-shadow: 0 0 0 5px rgba(34,162,90,.15); }
+}
+
+/* -- Tombol kembali -- */
+.btn-back { transition: color .15s, transform .2s cubic-bezier(.34,1.56,.64,1); }
+.btn-back:hover { transform: translateX(-4px); }
+.btn-back .icon { transition: transform .2s cubic-bezier(.34,1.56,.64,1); }
+.btn-back:hover .icon { transform: translateX(-3px); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
