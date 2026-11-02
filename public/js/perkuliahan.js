@@ -144,9 +144,9 @@
         <div class="mk-card${isActive ? ' mk-card--active' : ''}" data-id="${c.id}"
              style="--mk-color:${bg}; --card-i:${i}"
              tabindex="0" role="button" aria-label="Buka ${escapeHtml(c.nama_mk)}">
-          ${isActive ? `<div class="mk-card-live-badge">ΓùÅ Sesi Aktif</div>` : ''}
           <div class="mk-card-top">
             <div class="mk-card-info">
+              ${isActive ? `<div class="mk-card-live-tag"><span class="live-dot"></span>Sesi Aktif</div>` : ''}
               <div class="mk-card-name">${escapeHtml(c.nama_mk)}</div>
               <div class="mk-card-kelas">${escapeHtml(c.kelas)}</div>
             </div>
@@ -249,7 +249,7 @@
           <dt>Toleransi</dt><dd>${activeSesi.toleransi_menit} menit</dd>
         </dl>
         <div class="modal-foot" style="margin-top:14px">
-          <span class="pill-status live" style="margin-right:auto">ΓùÅ Sedang Berjalan</span>
+          <span class="pill-status live" style="margin-right:auto">Sedang Berjalan</span>
           <button type="button" class="btn btn-danger btn-sm" id="btn-close-sesi">${icon('stop')}Tutup Sesi</button>
         </div>`;
       el('btn-close-sesi').addEventListener('click', closeSesi);
@@ -348,8 +348,8 @@
   function renderPresensiMeta(sesi) {
     const isClosed = sesi.status === 'CLOSED';
     el('presensi-meta').innerHTML = isClosed
-      ? `<span class="pill-status idle">Selesai ┬╖ ${jam(sesi.waktu_mulai)}</span>`
-      : `<span class="pill-status live">ΓùÅ Aktif ┬╖ ${jam(sesi.waktu_mulai)}</span>`;
+      ? `<span class="pill-status idle">Selesai · ${jam(sesi.waktu_mulai)}</span>`
+      : `<span class="pill-status live">Aktif · ${jam(sesi.waktu_mulai)}</span>`;
   }
 
   function renderPresensiEmpty(msg) {
@@ -376,7 +376,7 @@
 
     belumEl.innerHTML = belum.length
       ? belum.map((r, i) => presensiBaris(r, false, i)).join('')
-      : '<div class="empty" style="padding:32px 20px">≡ƒÄë Semua mahasiswa sudah hadir!</div>';
+      : '<div class="empty" style="padding:32px 20px">Semua mahasiswa sudah hadir! 🎉</div>';
 
     // Animasi baris saat konten baru dimuat
     animateRows(hadirEl);
