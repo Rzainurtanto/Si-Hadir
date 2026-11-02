@@ -632,6 +632,94 @@ tr.row-new.settled td { background: transparent; }
 .course-form .field-name { grid-column: 1 / -1; }
 .course-form .modal-foot { grid-column: 1 / -1; margin-top: 0; }
 
+/* ==========================================================================
+   Perkuliahan — grid kartu mata kuliah
+   ========================================================================== */
+
+.mk-section { grid-column: 1 / -1; }
+
+.mk-section-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  margin-bottom: 18px;
+}
+.mk-section-head .desc { margin-bottom: 0; }
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.mk-card {
+  position: relative;
+  display: flex; flex-direction: column; justify-content: space-between;
+  min-height: 160px; padding: 18px 16px 14px;
+  border-radius: 14px;
+  background: var(--mk-color, #1e3a5f);
+  color: #fff;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  outline: none;
+  overflow: hidden;
+}
+.mk-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 140% 100% at 110% -10%, rgba(255,255,255,.14), transparent 60%);
+  pointer-events: none;
+}
+.mk-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px -8px rgba(0,0,0,.35); }
+.mk-card:focus-visible { outline: 3px solid rgba(255,255,255,.8); outline-offset: 2px; }
+.mk-card:active { transform: translateY(0); }
+
+.mk-card-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  margin-bottom: 18px;
+}
+.mk-card-info { flex: 1; min-width: 0; }
+.mk-card-name {
+  font-family: var(--font-sans); font-weight: 600; font-size: 14.5px; line-height: 1.3;
+  margin-bottom: 5px; word-break: break-word;
+}
+.mk-card-kelas {
+  font-family: var(--font-data); font-size: 11px; opacity: .75;
+}
+.mk-card-badge {
+  flex: none;
+  display: grid; place-items: center;
+  width: 38px; height: 38px; border-radius: 8px;
+  background: rgba(255,255,255,.18);
+  font-family: var(--font-sans); font-weight: 700; font-size: 12.5px;
+  letter-spacing: 0.03em;
+}
+
+.mk-card-bottom {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.15);
+}
+.mk-card-kode {
+  font-family: var(--font-data); font-size: 11px; opacity: .7;
+}
+.mk-card-actions { display: flex; align-items: center; gap: 6px; }
+
+.mk-card-open {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 26px; padding: 0 10px; border: 0; border-radius: 6px;
+  background: rgba(255,255,255,.18); color: #fff;
+  font-family: var(--font-sans); font-size: 11.5px; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+  transition: background-color .15s;
+}
+.mk-card-open:hover { background: rgba(255,255,255,.32); }
+.mk-card-open .icon { width: 12px; height: 12px; }
+
+.mk-card-del {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+}
+.mk-card-del:hover { background: rgba(220,50,50,.5); color: #fff; }
+.mk-card-del .icon { width: 13px; height: 13px; }
+
 .sim-result {
   margin-top: 12px; padding: 10px 12px; border-radius: 8px;
   font-family: var(--font-data); font-size: 11.5px; line-height: 1.5;
@@ -706,4 +794,152 @@ tr.row-new.settled td { background: transparent; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+
+/* ==========================================================================
+   Perkuliahan — layout detail split
+   ========================================================================== */
+
+.perk-view { width: 100%; }
+.perk-view[hidden] { display: none; }
+
+/* ---- Header daftar kartu ---- */
+.mk-list-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  margin-bottom: 20px;
+}
+.mk-list-head .panel-title { margin-bottom: 2px; }
+.mk-list-head .desc { margin: 0; }
+
+/* ---- Tombol kembali ---- */
+.btn-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 0; background: none; padding: 6px 0 14px;
+  font-family: var(--font-serif); font-size: 13px; color: var(--muted); cursor: pointer;
+}
+.btn-back:hover { color: var(--ink); }
+.btn-back .icon { width: 14px; height: 14px; }
+
+/* ---- Grid detail: kiri + kanan ---- */
+.perk-detail-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ---- Banner MK (header biru besar) ---- */
+.perk-mk-banner {
+  position: relative; overflow: hidden;
+  border-radius: 16px;
+  background: var(--mk-color, #1e3a5f);
+  color: #fff;
+  padding: 22px 20px;
+  margin-bottom: 14px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+.perk-mk-banner::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 150% 120% at 110% -10%, rgba(255,255,255,.14), transparent 55%);
+  pointer-events: none;
+}
+.perk-mk-banner-body { position: relative; z-index: 1; flex: 1; min-width: 0; }
+.perk-mk-label {
+  font-family: var(--font-data); font-size: 10px; letter-spacing: 0.14em;
+  opacity: .6; margin-bottom: 6px;
+}
+.perk-mk-title {
+  font-family: var(--font-sans); font-weight: 700; font-size: 18px; line-height: 1.25;
+  margin-bottom: 14px; word-break: break-word;
+}
+.perk-mk-kv { margin: 0; opacity: .85; }
+.perk-mk-kv dt { color: rgba(255,255,255,.6); }
+.perk-mk-kv dd { font-family: var(--font-data); }
+.perk-mk-initials {
+  position: relative; z-index: 1; flex: none;
+  display: grid; place-items: center;
+  width: 46px; height: 46px; border-radius: 10px;
+  background: rgba(255,255,255,.18);
+  font-family: var(--font-sans); font-weight: 700; font-size: 15px; letter-spacing: 0.04em;
+}
+
+/* ---- Panel sesi (kiri bawah) ---- */
+.perk-sesi-card { padding: 18px 20px; }
+
+/* ---- Panel presensi (kanan) ---- */
+.perk-presensi-card { padding: 0; overflow: hidden; }
+.perk-presensi-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.perk-presensi-meta { font-family: var(--font-data); font-size: 11px; }
+
+/* ---- Tab hadir / belum ---- */
+.perk-tabs {
+  display: flex; border-bottom: 1px solid var(--line-soft);
+  padding: 0 20px;
+}
+.perk-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 0; background: none; padding: 10px 0; margin-right: 22px;
+  font-family: var(--font-serif); font-size: 13px; color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+}
+.perk-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+.perk-tab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 18px; padding: 0 5px; border-radius: 99px;
+  background: #ebebeb; font-family: var(--font-data); font-size: 10.5px; color: var(--ink-2);
+}
+.perk-tab.active .perk-tab-count { background: var(--ink); color: #fff; }
+
+/* ---- List mahasiswa ---- */
+.perk-list {
+  max-height: 460px; overflow-y: auto;
+  padding: 8px 0;
+}
+.perk-list[hidden] { display: none; }
+
+.perk-mhs-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--line-soft);
+  transition: background .15s;
+}
+.perk-mhs-row:last-child { border-bottom: 0; }
+.perk-mhs-row:hover { background: #fafafa; }
+
+.perk-mhs-avatar {
+  flex: none;
+  display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #ddd; color: var(--ink-2);
+  font-family: var(--font-sans); font-weight: 600; font-size: 14px;
+}
+.perk-mhs-avatar--hadir { background: var(--ok-bg); color: var(--ok-fg); }
+
+.perk-mhs-info { flex: 1; min-width: 0; }
+.perk-mhs-nama {
+  font-family: var(--font-sans); font-size: 13px; font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.perk-mhs-nrp { font-family: var(--font-data); font-size: 10.5px; color: var(--muted); }
+
+.perk-mhs-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.perk-mhs-waktu { font-family: var(--font-data); font-size: 10.5px; color: var(--muted); }
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .perk-detail-grid { grid-template-columns: 1fr; }
+}
+/* Kartu aktif & badge live */
+.mk-card--active { box-shadow: 0 0 0 2px rgba(34,162,90,.7), 0 12px 32px -8px rgba(0,0,0,.35); }
+.mk-card-live-badge {
+  position: absolute; top: 10px; left: 12px;
+  font-family: var(--font-data); font-size: 9.5px; letter-spacing: 0.07em;
+  background: rgba(34,162,90,.22); color: #a6f5c5; border-radius: 99px;
+  padding: 2px 8px;
 }
