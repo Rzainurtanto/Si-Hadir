@@ -1,16 +1,16 @@
-(function () {
+﻿(function () {
   'use strict';
-  const { api, icon, escapeHtml, jam, badge, toast, confirmDialog, on } = window.SiHadir;
+  const { api, icon, escapeHtml, jam, toast, confirmDialog, on } = window.SiHadir;
 
   SiHadir.mountShell('perkuliahan');
 
   const el = (id) => document.getElementById(id);
 
-  let courses = [];          // semua mata kuliah
-  let activeSesi = null;     // sesi yang sedang aktif (null jika tidak ada)
-  let currentCourse = null;  // MK yang sedang dibuka di detail view
-  let presensiData = [];     // roster mahasiswa untuk sesi yang ditampilkan
-  let activeTab = 'hadir';   // tab aktif di panel kanan
+  let courses = [];
+  let activeSesi = null;
+  let currentCourse = null;
+  let presensiData = [];
+  let activeTab = 'hadir';
   let presensiInterval = null;
 
   /* ================================================================
@@ -30,7 +30,44 @@
   }
 
   /* ================================================================
-     Load data awal
+     Animasi helper
+  ================================================================ */
+
+  /** Terapkan --row-i ke setiap baris, lalu restart animasi */
+  function animateRows(container) {
+    const rows = container.querySelectorAll('.perk-mhs-row');
+    rows.forEach((row, i) => {
+      row.style.setProperty('--row-i', i);
+      // Force restart animasi
+      row.style.animation = 'none';
+      row.offsetHeight; // reflow
+      row.style.animation = '';
+    });
+  }
+
+  /** Bounce pada badge count jika nilainya berubah */
+  function bounceCount(elId, newVal) {
+    const badge = el(elId);
+    if (!badge) return;
+    const prev = badge.textContent;
+    badge.textContent = newVal;
+    if (prev !== String(newVal)) {
+      badge.classList.remove('updated');
+      badge.offsetHeight;
+      badge.classList.add('updated');
+      badge.addEventListener('animationend', () => badge.classList.remove('updated'), { once: true });
+    }
+  }
+
+  /** Tampilkan skeleton loading */
+  function showSkeleton(container, count = 4) {
+    container.innerHTML = Array.from({ length: count }, () =>
+      '<div class="perk-skeleton"></div>'
+    ).join('');
+  }
+
+  /* ================================================================
+     Load data
   ================================================================ */
   async function loadAll() {
     try {
@@ -41,8 +78,6 @@
       activeSesi = sesi;
       courses = list;
       renderCourses();
-
-      // Jika sedang di detail view, refresh juga panel detail
       if (currentCourse) refreshDetail();
     } catch (err) {
       toast(err.message, 'error');
@@ -52,11 +87,19 @@
   on('session', loadAll);
 
   /* ================================================================
-     VIEW: Daftar kartu mata kuliah
+     VIEW: List kartu
   ================================================================ */
   function showListView() {
-    el('view-list').hidden = false;
-    el('view-detail').hidden = true;
+    const detail = el('view-detail');
+    const list = el('view-list');
+
+    detail.hidden = true;
+    list.hidden = false;
+    // Restart animasi view
+    list.style.animation = 'none';
+    list.offsetHeight;
+    list.style.animation = '';
+
     currentCourse = null;
     clearInterval(presensiInterval);
     presensiInterval = null;
@@ -64,13 +107,20 @@
 
   function showDetailView(course) {
     currentCourse = course;
-    el('view-list').hidden = true;
-    el('view-detail').hidden = false;
+    const list = el('view-list');
+    const detail = el('view-detail');
+
+    list.hidden = true;
+    detail.hidden = false;
+    // Restart animasi view
+    detail.style.animation = 'none';
+    detail.offsetHeight;
+    detail.style.animation = '';
+
     renderDetailHeader(course);
     renderSesiBox();
     loadPresensi();
 
-    // Auto-refresh presensi setiap 10 detik saat sesi aktif
     clearInterval(presensiInterval);
     presensiInterval = setInterval(() => {
       if (activeSesi && activeSesi.mata_kuliah_id === currentCourse?.id) loadPresensi();
@@ -86,14 +136,15 @@
       return;
     }
     empty.innerHTML = '';
-    grid.innerHTML = courses.map((c) => {
+    grid.innerHTML = courses.map((c, i) => {
       const bg = cardColor(c.kode_mk);
       const initials = mkInitials(c.kode_mk);
       const isActive = activeSesi && activeSesi.mata_kuliah_id === c.id;
       return `
-        <div class="mk-card${isActive ? ' mk-card--active' : ''}" data-id="${c.id}" style="--mk-color:${bg}"
+        <div class="mk-card${isActive ? ' mk-card--active' : ''}" data-id="${c.id}"
+             style="--mk-color:${bg}; --card-i:${i}"
              tabindex="0" role="button" aria-label="Buka ${escapeHtml(c.nama_mk)}">
-          ${isActive ? `<div class="mk-card-live-badge">● Sesi Aktif</div>` : ''}
+          ${isActive ? `<div class="mk-card-live-badge">ΓùÅ Sesi Aktif</div>` : ''}
           <div class="mk-card-top">
             <div class="mk-card-info">
               <div class="mk-card-name">${escapeHtml(c.nama_mk)}</div>
@@ -115,14 +166,9 @@
     }).join('');
   }
 
-  /* Klik & keyboard di grid kartu */
   el('course-grid').addEventListener('click', async (e) => {
     const delBtn = e.target.closest('[data-delete]');
-    if (delBtn) {
-      e.stopPropagation();
-      await deleteCourse(Number(delBtn.dataset.delete));
-      return;
-    }
+    if (delBtn) { e.stopPropagation(); await deleteCourse(Number(delBtn.dataset.delete)); return; }
     const openBtn = e.target.closest('[data-open]');
     if (openBtn) { e.stopPropagation(); openCourseDetail(Number(openBtn.dataset.open)); return; }
     const card = e.target.closest('.mk-card');
@@ -136,8 +182,7 @@
 
   function openCourseDetail(courseId) {
     const course = courses.find((c) => c.id === courseId);
-    if (!course) return;
-    showDetailView(course);
+    if (course) showDetailView(course);
   }
 
   async function deleteCourse(courseId) {
@@ -145,7 +190,7 @@
     if (!course) return;
     const ok = await confirmDialog({
       title: 'Hapus mata kuliah?',
-      message: `${course.nama_mk} (${course.kode_mk}) akan dihapus. Riwayat sesi yang sudah ada tetap tersimpan.`,
+      message: `${course.nama_mk} (${course.kode_mk}) akan dihapus. Riwayat sesi tetap tersimpan.`,
     });
     if (!ok) return;
     try {
@@ -158,12 +203,13 @@
   }
 
   /* ================================================================
-     VIEW DETAIL — Header MK
+     VIEW DETAIL ΓÇö Header banner MK
   ================================================================ */
   function renderDetailHeader(course) {
     const bg = cardColor(course.kode_mk);
     const initials = mkInitials(course.kode_mk);
-    el('detail-mk-header').innerHTML = `
+    const hdr = el('detail-mk-header');
+    hdr.innerHTML = `
       <div class="perk-mk-banner" style="--mk-color:${bg}">
         <div class="perk-mk-banner-body">
           <div class="perk-mk-label">MATA KULIAH</div>
@@ -175,15 +221,25 @@
         </div>
         <div class="perk-mk-initials">${escapeHtml(initials)}</div>
       </div>`;
+    // Restart banner animasi
+    const banner = hdr.querySelector('.perk-mk-banner');
+    banner.style.animation = 'none';
+    banner.offsetHeight;
+    banner.style.animation = '';
   }
 
   /* ================================================================
-     VIEW DETAIL — Panel sesi (kiri bawah)
+     VIEW DETAIL ΓÇö Panel sesi
   ================================================================ */
   function renderSesiBox() {
     const box = el('detail-sesi-box');
     const isThisMKActive = activeSesi && activeSesi.mata_kuliah_id === currentCourse?.id;
-    const otherActive = activeSesi && activeSesi.mata_kuliah_id !== currentCourse?.id;
+    const otherActive = activeSesi && !isThisMKActive;
+
+    // Restart animasi panel
+    box.style.animation = 'none';
+    box.offsetHeight;
+    box.style.animation = '';
 
     if (isThisMKActive) {
       box.innerHTML = `
@@ -193,7 +249,7 @@
           <dt>Toleransi</dt><dd>${activeSesi.toleransi_menit} menit</dd>
         </dl>
         <div class="modal-foot" style="margin-top:14px">
-          <span class="pill-status live" style="margin-right:auto">● Sedang Berjalan</span>
+          <span class="pill-status live" style="margin-right:auto">ΓùÅ Sedang Berjalan</span>
           <button type="button" class="btn btn-danger btn-sm" id="btn-close-sesi">${icon('stop')}Tutup Sesi</button>
         </div>`;
       el('btn-close-sesi').addEventListener('click', closeSesi);
@@ -202,11 +258,10 @@
       box.innerHTML = `
         <h2 class="panel-title" style="margin-bottom:10px"><i data-icon="alarm"></i>Buka Sesi</h2>
         <p class="desc" style="color:#9b1c1c">Ada sesi lain yang sedang aktif (<b>${escapeHtml(activeSesi.nama_mk)}</b>). Tutup sesi tersebut terlebih dahulu.</p>`;
-
     } else {
       box.innerHTML = `
         <h2 class="panel-title" style="margin-bottom:10px"><i data-icon="alarm"></i>Buka Sesi</h2>
-        <p class="desc">Atur toleransi keterlambatan lalu buka sesi. Mahasiswa bisa tap kartu setelah sesi dibuka.</p>
+        <p class="desc">Atur toleransi lalu buka sesi. Mahasiswa bisa tap kartu setelah sesi dibuka.</p>
         <form id="detail-session-form" novalidate>
           <label class="field">
             <span>Toleransi Keterlambatan (menit)</span>
@@ -229,6 +284,7 @@
       toast(`Sesi ${currentCourse.nama_mk} dibuka`);
       const { data: sesi } = await api('/session/active');
       activeSesi = sesi;
+      renderCourses();
       renderSesiBox();
       loadPresensi();
     } catch (err) {
@@ -249,6 +305,7 @@
       await api('/session/close', { method: 'POST' });
       toast('Sesi ditutup');
       activeSesi = null;
+      renderCourses();
       renderSesiBox();
       loadPresensi();
     } catch (err) {
@@ -257,12 +314,16 @@
   }
 
   /* ================================================================
-     VIEW DETAIL — Panel presensi (kanan)
+     VIEW DETAIL ΓÇö Presensi mahasiswa (kanan)
   ================================================================ */
   async function loadPresensi() {
     if (!currentCourse) return;
 
-    // Cari sesi terbaru untuk MK ini (aktif atau closed terakhir)
+    // Tampilkan skeleton di tab aktif
+    const hadirEl = el('presensi-hadir');
+    const belumEl = el('presensi-belum');
+    showSkeleton(activeTab === 'hadir' ? hadirEl : belumEl, 3);
+
     try {
       const { data: allSessions } = await api('/session/list');
       const mkSessions = allSessions.filter((s) => s.mata_kuliah_id === currentCourse.id);
@@ -272,7 +333,6 @@
         return;
       }
 
-      // Gunakan sesi aktif MK ini, atau sesi terakhir
       const targetSesi = mkSessions.find((s) => s.status === 'ACTIVE') || mkSessions[0];
       const { data: roster, sessions } = await api(`/attendance/logs?sesi_id=${targetSesi.id}`);
       presensiData = roster || [];
@@ -288,14 +348,14 @@
   function renderPresensiMeta(sesi) {
     const isClosed = sesi.status === 'CLOSED';
     el('presensi-meta').innerHTML = isClosed
-      ? `<span class="pill-status idle">Sesi Selesai · ${jam(sesi.waktu_mulai)}</span>`
-      : `<span class="pill-status live">● Sesi Aktif · ${jam(sesi.waktu_mulai)}</span>`;
+      ? `<span class="pill-status idle">Selesai ┬╖ ${jam(sesi.waktu_mulai)}</span>`
+      : `<span class="pill-status live">ΓùÅ Aktif ┬╖ ${jam(sesi.waktu_mulai)}</span>`;
   }
 
   function renderPresensiEmpty(msg) {
     el('presensi-meta').innerHTML = '';
-    el('count-hadir').textContent = '0';
-    el('count-belum').textContent = '0';
+    bounceCount('count-hadir', 0);
+    bounceCount('count-belum', 0);
     el('presensi-hadir').innerHTML = `<div class="empty">${msg}</div>`;
     el('presensi-belum').innerHTML = '';
   }
@@ -304,19 +364,33 @@
     const hadir = presensiData.filter((r) => r.status === 'HADIR' || r.status === 'TERLAMBAT');
     const belum = presensiData.filter((r) => r.status === 'TANPA_KETERANGAN' || !r.status);
 
-    el('count-hadir').textContent = hadir.length;
-    el('count-belum').textContent = belum.length;
+    bounceCount('count-hadir', hadir.length);
+    bounceCount('count-belum', belum.length);
 
-    el('presensi-hadir').innerHTML = hadir.length
-      ? hadir.map((r) => presensiBaris(r, true)).join('')
+    const hadirEl = el('presensi-hadir');
+    const belumEl = el('presensi-belum');
+
+    hadirEl.innerHTML = hadir.length
+      ? hadir.map((r, i) => presensiBaris(r, true, i)).join('')
       : '<div class="empty">Belum ada mahasiswa yang hadir.</div>';
 
-    el('presensi-belum').innerHTML = belum.length
-      ? belum.map((r) => presensiBaris(r, false)).join('')
-      : '<div class="empty">Semua mahasiswa sudah hadir! 🎉</div>';
+    belumEl.innerHTML = belum.length
+      ? belum.map((r, i) => presensiBaris(r, false, i)).join('')
+      : '<div class="empty" style="padding:32px 20px">≡ƒÄë Semua mahasiswa sudah hadir!</div>';
+
+    // Animasi baris saat konten baru dimuat
+    animateRows(hadirEl);
+    animateRows(belumEl);
+
+    // Animasi tab content yang sedang aktif
+    const activeList = activeTab === 'hadir' ? hadirEl : belumEl;
+    activeList.classList.remove('tab-enter');
+    activeList.offsetHeight;
+    activeList.classList.add('tab-enter');
+    activeList.addEventListener('animationend', () => activeList.classList.remove('tab-enter'), { once: true });
   }
 
-  function presensiBaris(r, isHadir) {
+  function presensiBaris(r, isHadir, index = 0) {
     const initial = (r.nama || '?').charAt(0).toUpperCase();
     const statusBadge = r.status === 'HADIR'
       ? `<span class="badge hadir">Hadir</span>`
@@ -325,7 +399,7 @@
         : `<span class="badge tk">Belum</span>`;
     const waktu = r.waktu_tap ? `<span class="perk-mhs-waktu">${jam(r.waktu_tap)}</span>` : '';
     return `
-      <div class="perk-mhs-row">
+      <div class="perk-mhs-row" style="--row-i:${index}">
         <div class="perk-mhs-avatar${isHadir ? ' perk-mhs-avatar--hadir' : ''}">${escapeHtml(initial)}</div>
         <div class="perk-mhs-info">
           <div class="perk-mhs-nama">${escapeHtml(r.nama || '-')}</div>
@@ -335,9 +409,13 @@
       </div>`;
   }
 
-  /* Tab hadir / belum */
+  /* ================================================================
+     Tab hadir / belum ΓÇö dengan animasi slide
+  ================================================================ */
   document.querySelectorAll('.perk-tab').forEach((tab) => {
     tab.addEventListener('click', () => {
+      if (tab.dataset.tab === activeTab) return;
+
       document.querySelectorAll('.perk-tab').forEach((t) => {
         t.classList.remove('active');
         t.setAttribute('aria-selected', 'false');
@@ -345,12 +423,25 @@
       tab.classList.add('active');
       tab.setAttribute('aria-selected', 'true');
       activeTab = tab.dataset.tab;
-      el('presensi-hadir').hidden = activeTab !== 'hadir';
-      el('presensi-belum').hidden = activeTab !== 'belum';
+
+      const hadirEl = el('presensi-hadir');
+      const belumEl = el('presensi-belum');
+
+      hadirEl.hidden = activeTab !== 'hadir';
+      belumEl.hidden = activeTab !== 'belum';
+
+      // Animasi isi tab yang baru muncul
+      const shown = activeTab === 'hadir' ? hadirEl : belumEl;
+      shown.classList.remove('tab-enter');
+      shown.offsetHeight;
+      shown.classList.add('tab-enter');
+      shown.addEventListener('animationend', () => shown.classList.remove('tab-enter'), { once: true });
     });
   });
 
-  /* Refresh detail saat ada update socket */
+  /* ================================================================
+     Refresh saat socket update
+  ================================================================ */
   function refreshDetail() {
     if (!currentCourse) return;
     api('/session/active').then(({ data: sesi }) => {
@@ -366,7 +457,7 @@
   ================================================================ */
   el('btn-back').addEventListener('click', () => {
     showListView();
-    loadAll(); // refresh daftar kartu
+    loadAll();
   });
 
   /* ================================================================
@@ -393,6 +484,11 @@
     el('course-error').textContent = '';
     if (!body.kode_mk || !body.nama_mk || !body.kelas) {
       el('course-error').textContent = 'Kode, nama, dan kelas wajib diisi';
+      // Shake efek pada form
+      form.classList.remove('shake');
+      form.offsetHeight;
+      form.classList.add('shake');
+      form.addEventListener('animationend', () => form.classList.remove('shake'), { once: true });
       return;
     }
     try {
