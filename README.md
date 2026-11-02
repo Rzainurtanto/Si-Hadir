@@ -111,7 +111,6 @@ Content-Type: application/json
 .github/workflows/deploy.yml   GitHub Actions CI/CD pipeline
 Dockerfile                     Konfigurasi container Docker Node.js 24
 docker-compose.yml             Docker Compose & volume database persisten
-deploy.sh                      Script deployment otomatis & backup database
 ecosystem.config.js            Konfigurasi PM2 (opsional non-docker)
 server/
   index.js                     server Express + Socket.io, halaman

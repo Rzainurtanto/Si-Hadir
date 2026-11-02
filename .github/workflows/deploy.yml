@@ -28,13 +28,13 @@ jobs:
         run: npm test
 
   deploy:
-    name: 🚀 CD - Auto Deploy to Server
+    name: 🚀 CD - Auto Deploy to Server (Docker)
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
 
     steps:
-      - name: 🌐 Deploy via SSH to Remote Server
+      - name: 🌐 Deploy via SSH directly using Docker
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -45,18 +45,59 @@ jobs:
           script_stop: true
           script: |
             TARGET_DIR="${{ secrets.SERVER_PATH || '~/si-hadir' }}"
-            echo "Memeriksa direktori tujuan di server: $TARGET_DIR"
+            echo "-> Mengakses direktori target: $TARGET_DIR"
             mkdir -p "$TARGET_DIR"
             cd "$TARGET_DIR"
 
-            # Inisialisasi clone jika folder belum ada git repo
+            # 1. Inisialisasi clone jika folder belum memiliki repo git
             if [ ! -d ".git" ]; then
-              echo "Melakukan clone repositori branch develop..."
+              echo "-> Melakukan clone awal branch develop..."
               git clone -b develop https://github.com/${{ github.repository }}.git . 2>/dev/null || \
               git clone -b develop https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
             fi
 
-            # Jalankan script deployment otomatis
-            chmod +x deploy.sh
-            ./deploy.sh
+            # 2. Backup database SQLite sebelum update (agar data tetap aman)
+            mkdir -p data/backups
+            if [ -f "data/sihadir.db" ]; then
+              TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
+              echo "-> Membackup database ke data/backups/sihadir_backup_${TIMESTAMP}.db..."
+              cp data/sihadir.db "data/backups/sihadir_backup_${TIMESTAMP}.db"
+              [ -f data/sihadir.db-wal ] && cp data/sihadir.db-wal "data/backups/sihadir_backup_${TIMESTAMP}.db-wal" || true
+              (cd data/backups && ls -t sihadir_backup_*.db 2>/dev/null | tail -n +11 | xargs -r rm -f)
+            fi
 
+            # 3. Tarik perubahan terbaru dari branch develop
+            echo "-> Menarik commit terbaru dari branch develop..."
+            git fetch origin develop
+            git reset --hard origin/develop
+
+            # 4. Siapkan file .env jika belum ada
+            if [ ! -f .env ]; then
+              echo "-> Membuat .env dari template..."
+              cp .env.example .env
+            fi
+
+            # 5. Build Docker Image secara langsung
+            echo "-> Membangun image Docker (sihadir:latest)..."
+            docker build -t sihadir:latest .
+
+            # 6. Hentikan dan hapus kontainer lama jika ada
+            echo "-> Menghentikan kontainer lama 'sihadir_app'..."
+            docker stop sihadir_app 2>/dev/null || true
+            docker rm sihadir_app 2>/dev/null || true
+
+            # 7. Jalankan kontainer baru dengan port & volume database persisten
+            echo "-> Menjalankan kontainer baru 'sihadir_app'..."
+            docker run -d \
+              --name sihadir_app \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              --env-file .env \
+              -v "$(pwd)/data:/app/data" \
+              sihadir:latest
+
+            # 8. Hapus image cache usang
+            docker image prune -f
+
+            echo "=== Deployment Berhasil! Status Kontainer: ==="
+            docker ps --filter "name=sihadir_app"
