@@ -337,7 +337,7 @@ button.date-chip .caret { width: 12px; height: 12px; opacity: .6; }
   background: var(--field);
   font-family: var(--font-serif); font-size: 12px;
 }
-.search input:focus { outline: none; border-color: #c9c9d1; background: #fff; }
+.search input:focus { outline: none; border-color: #4b6bfb; box-shadow: 0 0 0 3px rgba(75,107,251,.15); background: #fff; }
 
 .select {
   max-width: 280px; text-overflow: ellipsis;
@@ -530,7 +530,7 @@ tr.row-new.settled td { background: transparent; }
   -webkit-appearance: none; appearance: none;
   background: var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
 }
-.field input:focus, .field select:focus { outline: none; border-color: #c4c4cf; background-color: #fff; }
+.field input:focus, .field select:focus { outline: none; border-color: #4b6bfb; box-shadow: 0 0 0 3px rgba(75,107,251,.15); background-color: #fff; }
 .field input::placeholder { color: #8a8a8a; }
 /* Kolom terkunci (misalnya Kelas yang mengikuti mata kuliah) */
 .field input[readonly], .field input:disabled {
@@ -1050,4 +1050,106 @@ tr.row-new.settled td { background: transparent; }
   font-family: var(--font-data); font-size: 9.5px; letter-spacing: 0.07em;
   background: rgba(34,162,90,.22); color: #a6f5c5; border-radius: 99px;
   padding: 2px 8px;
+}
+
+/* ==========================================================================
+   Animasi Global Semua Tab (Dashboard, Mahasiswa, Perkuliahan, Riwayat, Pengaturan)
+   ========================================================================== */
+
+/* Staggered page entrance untuk isi tab apapun */
+.enter {
+  animation: pageEnter .45s cubic-bezier(.16, 1, .3, 1) both;
+  animation-delay: calc(var(--i, 0) * 65ms);
+}
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Row-in animation untuk baris tabel di semua tab */
+.row-in {
+  animation: rowSlideIn .32s cubic-bezier(.16, 1, .3, 1) both;
+  animation-delay: calc(var(--i, 0) * 22ms);
+}
+@keyframes rowSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Badge animasi popping */
+.badge {
+  animation: badgePopIn .35s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+@keyframes badgePopIn {
+  from {
+    opacity: 0;
+    transform: scale(.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.badge.hadir {
+  box-shadow: 0 0 0 1px rgba(23, 102, 59, 0.2);
+}
+.badge.terlambat {
+  box-shadow: 0 0 0 1px rgba(124, 98, 8, 0.2);
+}
+
+/* RFID card detected pulsing alert banner (Tab Mahasiswa) */
+.uid-fill {
+  animation: beaconPulse 2.4s infinite ease-in-out, fadeSlideUp .3s ease-out;
+}
+@keyframes beaconPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(211, 182, 182, 0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(211, 182, 182, 0); }
+}
+
+/* Simulator tap response pop (Tab Pengaturan) */
+.sim-pop {
+  animation: simPopIn .36s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+@keyframes simPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(.95);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Calendar day button hover spring (Tab Riwayat Presensi) */
+.cal-grid button {
+  transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), background-color .15s;
+}
+.cal-grid button:hover:not(.out) {
+  transform: scale(1.18);
+  z-index: 2;
+}
+
+/* Session strip active sway (Tab Dashboard) */
+.session-strip:has(.pill-status.live) .s-icon {
+  animation: bellSway 3s ease-in-out infinite;
+}
+@keyframes bellSway {
+  0%, 100% { transform: rotate(0); }
+  10% { transform: rotate(10deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(6deg); }
+  40% { transform: rotate(0); }
 }

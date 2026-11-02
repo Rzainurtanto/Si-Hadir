@@ -464,6 +464,14 @@
     loadUser();
     loadTopbarData();
     connectSocket();
+
+    const main = document.querySelector('main');
+    if (main) {
+      Array.from(main.children).forEach((child, i) => {
+        child.classList.add('enter');
+        child.style.setProperty('--i', i);
+      });
+    }
   }
 
   window.SiHadir = {

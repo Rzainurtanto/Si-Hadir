@@ -78,8 +78,8 @@
       : rows;
 
     el('log-head').innerHTML = `<tr><th>Nama</th><th>NRP</th><th>Kelas</th>${multi ? '<th>Mata Kuliah</th>' : ''}<th>Status</th><th>Waktu</th></tr>`;
-    el('log-body').innerHTML = shown.map((r) => `
-      <tr>
+    el('log-body').innerHTML = shown.map((r, i) => `
+      <tr class="row-in" style="--i:${Math.min(i, 20)}">
         <td>${escapeHtml(r.nama)}</td>
         <td>${escapeHtml(r.nrp)}</td>
         <td>${escapeHtml(r.kelas)}</td>
