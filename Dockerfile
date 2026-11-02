@@ -23,3 +23,4 @@ EXPOSE 3000
 VOLUME ["/app/data"]
 
 CMD ["node", "server/index.js"]
+
