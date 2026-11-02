@@ -146,7 +146,51 @@ sequenceDiagram
 
 ---
 
-### 3.2 Endpoint Manajemen Sesi & Dashboard
+### 3.2 Endpoint Cek Sesi Presensi (ESP8266 & Perangkat IoT)
+- **URL:** `GET /api/sesi` (Alias: `POST /api/sesi`, `GET /api/session`)
+- **Query Params (Opsional):** `?wait=true` (Long polling: menahan koneksi sampai sesi dibuka)
+- **Headers (Opsional):** `X-Device-Key: <key>` (jika dikonfigurasi di environment)
+- **Response Body:**
+  - **Skenario 1: Sesi Sedang Aktif (Active):**
+    ```json
+    {
+      "success": true,
+      "status": "ACTIVE",
+      "ada_sesi": true,
+      "has_session": true,
+      "message": "Sesi perkuliahan sedang aktif",
+      "data": {
+        "id": 1,
+        "mata_kuliah_id": 2,
+        "nama_mk": "Internet of Things",
+        "kelas": "3 D4 TRM A",
+        "waktu_mulai": "2026-11-02T14:00:00.000Z",
+        "toleransi_menit": 15,
+        "batas_toleransi": "2026-11-02T14:15:00.000Z",
+        "status": "ACTIVE",
+        "statistik": {
+          "hadir": 10,
+          "terlambat": 1,
+          "total_tap": 11
+        }
+      }
+    }
+    ```
+  - **Skenario 2: Tidak Ada Sesi Aktif (No Session):**
+    ```json
+    {
+      "success": true,
+      "status": "NO_SESSION",
+      "ada_sesi": false,
+      "has_session": false,
+      "message": "Tidak ada sesi presensi yang sedang aktif",
+      "data": null
+    }
+    ```
+
+---
+
+### 3.3 Endpoint Manajemen Sesi & Dashboard
 - `POST /api/auth/login`: Autentikasi admin (username & password).
 - `GET /api/session/active`: Mengambil info sesi perkuliahan yang sedang berjalan.
 - `POST /api/session/start`: Membuka sesi baru (pilih Mata Kuliah, Kelas, Batas Toleransi Menit).

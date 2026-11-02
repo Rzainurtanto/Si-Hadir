@@ -11,15 +11,24 @@
   async function loadDeviceInfo() {
     try {
       const { data } = await api('/system/info');
-      const urls = data.tap_urls.length ? data.tap_urls : [`${location.origin}/api/attendance/tap`];
-      el('tap-urls').innerHTML = urls.map((url) => `
+      const tapUrls = data.tap_urls?.length ? data.tap_urls : [`${location.origin}/api/attendance/tap`];
+      const sesiUrls = data.sesi_urls?.length ? data.sesi_urls : [`${location.origin}/api/sesi`];
+
+      const renderBoxes = (urls, method) => urls.map((url) => `
         <div class="code-box" style="margin-bottom:8px">
-          <code>POST ${escapeHtml(url)}</code>
+          <code><span style="font-weight:600">${method}</span> ${escapeHtml(url)}</code>
           <button type="button" class="icon-btn" data-copy="${escapeHtml(url)}" aria-label="Salin alamat">${icon('copy')}</button>
-        </div>`).join('') +
-        (data.device_key_required
+        </div>`).join('');
+
+      el('tap-urls').innerHTML = `
+        <p class="desc" style="font-size:12px;font-weight:600;margin-bottom:6px">Endpoint Tap Presensi (RFID):</p>
+        ${renderBoxes(tapUrls, 'POST')}
+        <p class="desc" style="font-size:12px;font-weight:600;margin-top:12px;margin-bottom:6px">Endpoint Cek Sesi Aktif:</p>
+        ${renderBoxes(sesiUrls, 'GET')}
+        ${data.device_key_required
           ? '<p class="desc" style="margin-top:8px">Perangkat wajib mengirim header <code>X-Device-Key</code>.</p>'
-          : '');
+          : ''}
+      `;
     } catch { /* opsional */ }
   }
 
