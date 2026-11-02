@@ -1,3 +1,4 @@
+const { EventEmitter } = require('node:events');
 const os = require('node:os');
 const express = require('express');
 const { db } = require('./db');
@@ -43,11 +44,62 @@ function createApiRouter(broadcast) {
   const api = express.Router();
   api.use(express.json({ limit: '32kb' }));
 
+  const sessionEvents = new EventEmitter();
+  sessionEvents.setMaxListeners(100);
+
+  function formatSessionResponse(sesi) {
+    if (!sesi || sesi.status !== 'ACTIVE') {
+      return {
+        success: true,
+        status: 'NO_SESSION',
+        ada_sesi: false,
+        has_session: false,
+        message: 'Tidak ada sesi presensi yang sedang aktif',
+        data: null,
+      };
+    }
+
+    const counts = db.prepare(`
+      SELECT
+        COUNT(CASE WHEN status_kehadiran = 'HADIR' THEN 1 END) AS hadir,
+        COUNT(CASE WHEN status_kehadiran = 'TERLAMBAT' THEN 1 END) AS terlambat,
+        COUNT(*) AS total
+      FROM presensi
+      WHERE sesi_id = ?
+    `).get(sesi.id) || { hadir: 0, terlambat: 0, total: 0 };
+
+    const batasWaktu = new Date(new Date(sesi.waktu_mulai).getTime() + sesi.toleransi_menit * 60 * 1000).toISOString();
+
+    return {
+      success: true,
+      status: 'ACTIVE',
+      ada_sesi: true,
+      has_session: true,
+      message: 'Sesi perkuliahan sedang aktif',
+      data: {
+        id: sesi.id,
+        mata_kuliah_id: sesi.mata_kuliah_id,
+        nama_mk: sesi.nama_mk,
+        kelas: sesi.kelas,
+        waktu_mulai: sesi.waktu_mulai,
+        waktu_selesai: sesi.waktu_selesai,
+        toleransi_menit: sesi.toleransi_menit,
+        batas_toleransi: batasWaktu,
+        status: sesi.status,
+        statistik: {
+          hadir: counts.hadir,
+          terlambat: counts.terlambat,
+          total_tap: counts.total,
+        },
+      },
+    };
+  }
+
   // Endpoint monitoring kesehatan server (Health Check)
   api.get('/health', (req, res) => res.json({ status: 'ok', uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() }));
 
   /* ------------------------------------------------------------------ */
-  /* Perangkat ESP8266                                                   */
+  /* Perangkat ESP8266 & Perangkat IoT                                   */
   /* ------------------------------------------------------------------ */
 
   api.post('/attendance/tap', (req, res) => {
@@ -63,6 +115,62 @@ function createApiRouter(broadcast) {
     // Sesuai alur di spesifikasi: perangkat selalu menerima HTTP 200, status ada di body.
     res.status(body.status === 'INVALID' ? 400 : 200).json(body);
   });
+
+  // Handler cek sesi aktif untuk ESP8266 & client eksternal (bisa instant polling atau long polling dengan ?wait=true)
+  const handleGetSesi = (req, res) => {
+    const deviceKey = process.env.DEVICE_KEY;
+    if (deviceKey && req.get('X-Device-Key') && req.get('X-Device-Key') !== deviceKey) {
+      return res.status(401).json({ success: false, status: 'UNAUTHORIZED', code: 401, message: 'Perangkat Tidak Dikenal' });
+    }
+
+    const sesi = attendance.getActiveSession();
+    const wait = req.query.wait === 'true' || req.query.wait === '1' || req.query.longpoll === '1';
+
+    // Jika sesi sudah aktif atau client tidak minta menunggu, langsung kirim data saat ini.
+    if (sesi || !wait) {
+      return res.status(200).json(formatSessionResponse(sesi));
+    }
+
+    // Jika belum ada sesi dan client meminta menunggu (long polling, e.g. untuk ESP8266 standby),
+    // tahan response hingga ada sesi dibuka atau batas waktu timeout habis.
+    const timeoutMs = Math.min(Math.max(Number(req.query.timeout) || 25, 5), 60) * 1000;
+    let responded = false;
+
+    const onSessionUpdate = (newSesi) => {
+      if (responded) return;
+      if (newSesi && newSesi.status === 'ACTIVE') {
+        responded = true;
+        clearTimeout(timer);
+        sessionEvents.off('SESSION_UPDATE', onSessionUpdate);
+        return res.status(200).json(formatSessionResponse(newSesi));
+      }
+    };
+
+    sessionEvents.on('SESSION_UPDATE', onSessionUpdate);
+
+    const timer = setTimeout(() => {
+      if (responded) return;
+      responded = true;
+      sessionEvents.off('SESSION_UPDATE', onSessionUpdate);
+      const latest = attendance.getActiveSession();
+      return res.status(200).json(formatSessionResponse(latest));
+    }, timeoutMs);
+
+    req.on('close', () => {
+      if (!responded) {
+        responded = true;
+        clearTimeout(timer);
+        sessionEvents.off('SESSION_UPDATE', onSessionUpdate);
+      }
+    });
+  };
+
+  // Endpoint untuk mengecek sesi presensi aktif
+  api.get('/sesi', handleGetSesi);
+  api.post('/sesi', handleGetSesi);
+  api.get('/sesi/aktif', handleGetSesi);
+  api.get('/sesi/active', handleGetSesi);
+  api.get('/session', handleGetSesi);
 
   /* ------------------------------------------------------------------ */
   /* Autentikasi                                                         */
@@ -116,11 +224,20 @@ function createApiRouter(broadcast) {
   // Alamat yang bisa dipakai ESP8266 (IP laptop di jaringan lokal, bukan localhost).
   api.get('/system/info', (req, res) => {
     const port = req.socket.localPort;
-    const lan = Object.values(os.networkInterfaces())
+    const baseUrls = Object.values(os.networkInterfaces())
       .flat()
       .filter((i) => i && i.family === 'IPv4' && !i.internal)
-      .map((i) => `http://${i.address}:${port}/api/attendance/tap`);
-    res.json({ success: true, data: { tap_urls: lan, device_key_required: Boolean(process.env.DEVICE_KEY) } });
+      .map((i) => `http://${i.address}:${port}`);
+    const tapUrls = baseUrls.map((base) => `${base}/api/attendance/tap`);
+    const sesiUrls = baseUrls.map((base) => `${base}/api/sesi`);
+    res.json({
+      success: true,
+      data: {
+        tap_urls: tapUrls,
+        sesi_urls: sesiUrls,
+        device_key_required: Boolean(process.env.DEVICE_KEY),
+      },
+    });
   });
 
   /* ------------------------------------------------------------------ */
@@ -175,6 +292,7 @@ function createApiRouter(broadcast) {
     `).run(mataKuliahId, namaMk, kelas, new Date().toISOString(), toleransi, req.user.id);
 
     const sesi = db.prepare('SELECT * FROM sesi_kuliah WHERE id = ?').get(info.lastInsertRowid);
+    sessionEvents.emit('SESSION_UPDATE', sesi);
     broadcast('SESSION_UPDATE', sesi);
     broadcast('STATS_UPDATE', attendance.dashboardStats());
     res.status(201).json({ success: true, data: sesi });
@@ -186,6 +304,7 @@ function createApiRouter(broadcast) {
     db.prepare("UPDATE sesi_kuliah SET status = 'CLOSED', waktu_selesai = ? WHERE id = ?")
       .run(new Date().toISOString(), sesi.id);
     const closed = db.prepare('SELECT * FROM sesi_kuliah WHERE id = ?').get(sesi.id);
+    sessionEvents.emit('SESSION_UPDATE', closed);
     broadcast('SESSION_UPDATE', closed);
     broadcast('STATS_UPDATE', attendance.dashboardStats());
     res.json({ success: true, data: closed });

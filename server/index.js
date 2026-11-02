@@ -28,6 +28,12 @@ const broadcast = (event, payload) => io.emit(event, payload);
 
 app.use('/api', createApiRouter(broadcast));
 
+// Alias endpoint /sesi langsung ke /api/sesi
+app.all('/sesi', (req, res) => {
+  const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  res.redirect(307, `/api/sesi${query}`);
+});
+
 /* Halaman */
 const page = (name) => (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'pages', `${name}.html`));
 
@@ -99,8 +105,11 @@ server.listen(PORT, () => {
     .map((i) => i.address);
 
   console.log('\n  SI-HADIR berjalan');
-  console.log(`  Dashboard  : http://localhost:${PORT}`);
-  for (const ip of lanIps) console.log(`  ESP8266    : POST http://${ip}:${PORT}/api/attendance/tap`);
+  console.log(`  Dashboard   : http://localhost:${PORT}`);
+  for (const ip of lanIps) {
+    console.log(`  ESP8266 Tap : POST http://${ip}:${PORT}/api/attendance/tap`);
+    console.log(`  ESP8266 Sesi: GET  http://${ip}:${PORT}/api/sesi`);
+  }
   if (created) {
     console.log(`\n  Akun admin baru dibuat -> username: ${created.username}  password: ${created.password}`);
     console.log('  Segera ganti password di menu Pengaturan.');

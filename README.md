@@ -70,9 +70,19 @@ Agar deployment otomatis berjalan, tambahkan secret berikut di repositori GitHub
 | `/riwayat`    | Riwayat per tanggal / sesi, export CSV |
 | `/pengaturan` | Alamat ESP8266, simulator tap kartu, akun |
 
-## Untuk ESP8266
+## Untuk ESP8266 & Perangkat IoT
 
+### 1. Cek Sesi Presensi Aktif
+```http
+GET http://<IP-server>:3000/api/sesi
 ```
+- Endpoint ini digunakan untuk mengetahui apakah ada sesi presensi yang sedang dibuka.
+- Jika ada sesi aktif, mengembalikan `ada_sesi: true`, `status: "ACTIVE"`, dan data mata kuliah, kelas, batas waktu toleransi, serta statistik hadir.
+- Jika tidak ada sesi aktif, mengembalikan `ada_sesi: false`, `status: "NO_SESSION"`, dan `data: null`.
+- Opsional: tambahkan `?wait=true` untuk long polling (server menunggu sampai sesi dibuka sebelum mengirim balasan).
+
+### 2. Kirim Tap Kartu RFID
+```http
 POST http://<IP-server>:3000/api/attendance/tap
 Content-Type: application/json
 
