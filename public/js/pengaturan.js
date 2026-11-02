@@ -60,7 +60,7 @@
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      box.className = `sim-result ${data.status === 'ACCEPTED' ? 'ok' : data.status === 'DENIED' ? 'bad' : 'warn'}`;
+      box.className = `sim-result sim-pop ${data.status === 'ACCEPTED' ? 'ok' : data.status === 'DENIED' ? 'bad' : 'warn'}`;
       box.textContent = `${data.status} · ${data.message}` +
         (data.data ? `\n${data.data.nama} (${data.data.nrp}) → ${data.data.status_presensi}` : '');
     } catch (err) {
@@ -90,6 +90,9 @@
     };
     if (!body.full_name) {
       el('profile-error').textContent = 'Nama lengkap wajib diisi';
+      profile.classList.remove('shake');
+      void profile.offsetHeight;
+      profile.classList.add('shake');
       return;
     }
     if (body.password_baru && !body.password_lama) {

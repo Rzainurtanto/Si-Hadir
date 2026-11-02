@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   'use strict';
   const { api, icon, escapeHtml, badge, jam, ymd, tanggalPanjang, toast, confirmDialog, on } = window.SiHadir;
 

@@ -16,8 +16,8 @@
 
   function render() {
     const q = el('search').value.trim();
-    el('student-body').innerHTML = students.map((m) => `
-      <tr>
+    el('student-body').innerHTML = students.map((m, i) => `
+      <tr class="row-in" style="--i:${Math.min(i, 20)}">
         <td>${escapeHtml(m.nama)}</td>
         <td>${escapeHtml(m.nrp)}</td>
         <td>${escapeHtml(m.kelas)}</td>
@@ -119,6 +119,9 @@
     for (const k of ['nama', 'nrp', 'kelas', 'uid_rfid']) data[k] = data[k].trim();
     if (!data.nama || !data.nrp || !data.kelas) {
       el('student-error').textContent = 'Nama, NRP, dan kelas wajib diisi';
+      form.classList.remove('shake');
+      void form.offsetHeight;
+      form.classList.add('shake');
       return;
     }
 
