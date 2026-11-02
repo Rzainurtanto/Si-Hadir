@@ -16,33 +16,84 @@
     <div class="main">
       <header class="topbar" id="topbar"></header>
 
-      <main class="settings-grid">
-        <!-- Sesi perkuliahan -->
-        <section class="card settings-card" id="sesi" aria-labelledby="sesi-title">
-          <h1 class="panel-title" id="sesi-title"><i data-icon="alarm"></i>Sesi Perkuliahan</h1>
-          <div id="session-box"><p class="desc">Memuat…</p></div>
+      <main>
+        <!-- ===== Grid kartu mata kuliah ===== -->
+        <section id="view-list" class="perk-view">
+          <div class="mk-list-head">
+            <div>
+              <h1 class="panel-title"><i data-icon="book"></i>Mata Kuliah</h1>
+              <p class="desc">Pilih mata kuliah untuk membuka sesi presensi.</p>
+            </div>
+            <button type="button" class="btn btn-dark btn-sm" id="btn-add-mk">
+              <i data-icon="plus"></i>Tambah
+            </button>
+          </div>
+          <div id="course-grid" class="course-grid"></div>
+          <div id="course-empty"></div>
         </section>
 
-        <!-- Mata kuliah -->
-        <section class="card settings-card" aria-labelledby="mk-title">
-          <h2 class="panel-title" id="mk-title"><i data-icon="book"></i>Mata Kuliah</h2>
-          <p class="desc">Daftar mata kuliah yang bisa dipilih saat membuka sesi.</p>
-          <div class="table-wrap">
-            <table class="data">
-              <thead><tr><th>Kode</th><th>Mata Kuliah</th><th>Kelas</th><th class="actions"><span class="sr-only">Aksi</span></th></tr></thead>
-              <tbody id="course-body"></tbody>
-            </table>
+        <!-- ===== Detail mata kuliah (setelah klik kartu) ===== -->
+        <section id="view-detail" class="perk-view" hidden>
+          <button type="button" class="btn-back" id="btn-back">
+            <i data-icon="chevronLeft"></i> Kembali ke Daftar Mata Kuliah
+          </button>
+
+          <div class="perk-detail-grid">
+            <!-- Kolom kiri: info MK + kontrol sesi -->
+            <div class="perk-left">
+              <div class="perk-mk-header" id="detail-mk-header">
+                <!-- diisi JS -->
+              </div>
+              <div class="card settings-card perk-sesi-card" id="detail-sesi-box">
+                <!-- diisi JS -->
+              </div>
+            </div>
+
+            <!-- Kolom kanan: daftar presensi mahasiswa -->
+            <div class="perk-right">
+              <div class="card settings-card perk-presensi-card">
+                <div class="perk-presensi-head">
+                  <h2 class="panel-title" style="margin-bottom:0"><i data-icon="idCard"></i>Presensi Mahasiswa</h2>
+                  <span class="perk-presensi-meta" id="presensi-meta"></span>
+                </div>
+
+                <!-- Tab Hadir / Belum -->
+                <div class="perk-tabs" role="tablist">
+                  <button class="perk-tab active" role="tab" id="tab-hadir" aria-selected="true" data-tab="hadir">
+                    Sudah Hadir <span class="perk-tab-count" id="count-hadir">0</span>
+                  </button>
+                  <button class="perk-tab" role="tab" id="tab-belum" aria-selected="false" data-tab="belum">
+                    Belum Hadir <span class="perk-tab-count" id="count-belum">0</span>
+                  </button>
+                </div>
+
+                <div id="presensi-hadir" class="perk-list" role="tabpanel" aria-labelledby="tab-hadir"></div>
+                <div id="presensi-belum" class="perk-list" role="tabpanel" aria-labelledby="tab-belum" hidden></div>
+              </div>
+            </div>
           </div>
-          <div id="course-empty"></div>
-          <form id="course-form" class="course-form" novalidate>
-            <label class="field"><span>Kode</span><input name="kode_mk" placeholder="TRM301" maxlength="20" required></label>
-            <label class="field"><span>Kelas</span><input name="kelas" placeholder="3 D4 TRM A" maxlength="30" required></label>
-            <label class="field field-name"><span>Nama Mata Kuliah</span><input name="nama_mk" placeholder="Workshop Kecerdasan Buatan" maxlength="100" required></label>
-            <p class="form-error field-name" id="course-error" role="alert"></p>
-            <div class="modal-foot"><button type="submit" class="btn btn-dark btn-sm"><i data-icon="plus"></i>Tambah Mata Kuliah</button></div>
-          </form>
         </section>
       </main>
+    </div>
+  </div>
+
+  <!-- Modal tambah mata kuliah -->
+  <div class="overlay" id="mk-overlay" hidden>
+    <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="mk-modal-title">
+      <div class="modal-head">
+        <h3 id="mk-modal-title">Tambah Mata Kuliah</h3>
+        <button type="button" class="icon-btn" id="btn-close-mk-modal" aria-label="Tutup"><i data-icon="x"></i></button>
+      </div>
+      <form id="course-form" novalidate>
+        <label class="field"><span>Kode Mata Kuliah</span><input name="kode_mk" placeholder="TRM301" maxlength="20" required></label>
+        <label class="field"><span>Kelas</span><input name="kelas" placeholder="3 D4 TRM A" maxlength="30" required></label>
+        <label class="field"><span>Nama Mata Kuliah</span><input name="nama_mk" placeholder="Workshop Kecerdasan Buatan" maxlength="100" required></label>
+        <p class="form-error" id="course-error" role="alert"></p>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-light btn-sm" id="btn-cancel-mk">Batal</button>
+          <button type="submit" class="btn btn-dark btn-sm"><i data-icon="plus"></i>Tambah Mata Kuliah</button>
+        </div>
+      </form>
     </div>
   </div>
 
